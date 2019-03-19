@@ -264,6 +264,7 @@ public class StreamProcessorController extends Actor {
 
   private void onRecordReprocessed(final LoggedEvent currentEvent) {
     if (currentEvent.getPosition() == lastSourceEventPosition) {
+      LOG.info("Reprocessing finished at event position {}", currentEvent.getPosition());
       onRecovered();
     } else {
       actor.submit(this::reprocessNextEvent);
