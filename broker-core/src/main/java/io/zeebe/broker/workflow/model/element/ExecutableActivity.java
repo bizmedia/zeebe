@@ -22,7 +22,8 @@ import java.util.Collection;
 import java.util.List;
 import org.agrona.DirectBuffer;
 
-public class ExecutableActivity extends ExecutableFlowNode implements ExecutableCatchEventSupplier {
+public class ExecutableActivity extends ExecutableFlowNodeImpl
+    implements ExecutableCatchEventSupplier {
   private List<ExecutableBoundaryEvent> boundaryEvents = new ArrayList<>();
   private List<ExecutableCatchEvent> catchEvents = new ArrayList<>();
   private List<DirectBuffer> interruptingIds = new ArrayList<>();

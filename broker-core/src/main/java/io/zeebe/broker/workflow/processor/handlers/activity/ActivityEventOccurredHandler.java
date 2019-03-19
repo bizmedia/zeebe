@@ -21,7 +21,7 @@ import io.zeebe.broker.Loggers;
 import io.zeebe.broker.workflow.model.element.ExecutableActivity;
 import io.zeebe.broker.workflow.model.element.ExecutableBoundaryEvent;
 import io.zeebe.broker.workflow.processor.BpmnStepContext;
-import io.zeebe.broker.workflow.processor.handlers.element.EventOccurredHandler;
+import io.zeebe.broker.workflow.processor.handlers.catchevent.CatchEventSupplierEventOccurredHandler;
 import io.zeebe.broker.workflow.state.EventTrigger;
 import io.zeebe.protocol.impl.record.value.workflowinstance.WorkflowInstanceRecord;
 import io.zeebe.protocol.intent.WorkflowInstanceIntent;
@@ -29,7 +29,7 @@ import io.zeebe.util.buffer.BufferUtil;
 import java.util.List;
 
 public class ActivityEventOccurredHandler<T extends ExecutableActivity>
-    extends EventOccurredHandler<T> {
+    extends CatchEventSupplierEventOccurredHandler<T> {
   public ActivityEventOccurredHandler() {
     this(null);
   }
@@ -41,8 +41,11 @@ public class ActivityEventOccurredHandler<T extends ExecutableActivity>
   @Override
   protected boolean handleState(BpmnStepContext<T> context) {
     final EventTrigger event = getTriggeredEvent(context, context.getRecord().getKey());
-    final ExecutableBoundaryEvent boundaryEvent = getBoundaryEvent(context, event);
+    if (isActivityEventHandler(context, event)) {
+      return super.handleState(context);
+    }
 
+    final ExecutableBoundaryEvent boundaryEvent = getBoundaryEvent(context, event);
     if (boundaryEvent == null) {
       Loggers.WORKFLOW_PROCESSOR_LOGGER.error(
           "No boundary event found with ID {} for process {}",
@@ -61,7 +64,11 @@ public class ActivityEventOccurredHandler<T extends ExecutableActivity>
       publishEvent(context, context.getRecord().getKey(), eventRecord, event);
     }
 
-    return super.handleState(context);
+    return true;
+  }
+
+  private boolean isActivityEventHandler(BpmnStepContext<T> context, EventTrigger event) {
+    return event.getElementId().equals(context.getElement().getId());
   }
 
   private ExecutableBoundaryEvent getBoundaryEvent(BpmnStepContext<T> context, EventTrigger event) {

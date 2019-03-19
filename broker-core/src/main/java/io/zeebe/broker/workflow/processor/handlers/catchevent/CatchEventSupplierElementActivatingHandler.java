@@ -15,9 +15,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.zeebe.broker.workflow.processor.handlers.activity;
+package io.zeebe.broker.workflow.processor.handlers.catchevent;
 
-import io.zeebe.broker.workflow.model.element.ExecutableActivity;
+import io.zeebe.broker.workflow.model.element.ExecutableCatchEventSupplier;
 import io.zeebe.broker.workflow.processor.BpmnStepContext;
 import io.zeebe.broker.workflow.processor.handlers.IOMappingHelper;
 import io.zeebe.broker.workflow.processor.handlers.element.ElementActivatingHandler;
@@ -25,15 +25,17 @@ import io.zeebe.broker.workflow.processor.message.MessageCorrelationKeyException
 import io.zeebe.protocol.ErrorType;
 import io.zeebe.protocol.intent.WorkflowInstanceIntent;
 
-public class ActivityElementActivatingHandler<T extends ExecutableActivity>
+public class CatchEventSupplierElementActivatingHandler<T extends ExecutableCatchEventSupplier>
     extends ElementActivatingHandler<T> {
-  public ActivityElementActivatingHandler() {}
+  public CatchEventSupplierElementActivatingHandler() {
+    super();
+  }
 
-  public ActivityElementActivatingHandler(WorkflowInstanceIntent nextState) {
+  public CatchEventSupplierElementActivatingHandler(WorkflowInstanceIntent nextState) {
     super(nextState);
   }
 
-  public ActivityElementActivatingHandler(
+  public CatchEventSupplierElementActivatingHandler(
       WorkflowInstanceIntent nextState, IOMappingHelper ioMappingHelper) {
     super(nextState, ioMappingHelper);
   }

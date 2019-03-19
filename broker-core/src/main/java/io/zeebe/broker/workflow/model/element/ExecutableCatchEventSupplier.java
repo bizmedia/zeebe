@@ -21,7 +21,7 @@ import java.util.Collection;
 import java.util.List;
 import org.agrona.DirectBuffer;
 
-public interface ExecutableCatchEventSupplier extends ExecutableFlowElement {
+public interface ExecutableCatchEventSupplier extends ExecutableFlowNode {
   List<ExecutableCatchEvent> getEvents();
 
   Collection<DirectBuffer> getInterruptingElementIds();

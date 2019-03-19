@@ -18,50 +18,15 @@
 package io.zeebe.broker.workflow.model.element;
 
 import io.zeebe.msgpack.mapping.Mapping;
-import java.util.ArrayList;
 import java.util.List;
 
-public class ExecutableFlowNode extends AbstractFlowElement {
+public interface ExecutableFlowNode extends ExecutableFlowElement {
 
-  private List<ExecutableSequenceFlow> incoming = new ArrayList<>();
-  private List<ExecutableSequenceFlow> outgoing = new ArrayList<>();
+  List<ExecutableSequenceFlow> getOutgoing();
 
-  private Mapping[] inputMappings = new Mapping[0];
-  private Mapping[] outputMappings = new Mapping[0];
+  List<ExecutableSequenceFlow> getIncoming();
 
-  public ExecutableFlowNode(String id) {
-    super(id);
-  }
+  Mapping[] getInputMappings();
 
-  public List<ExecutableSequenceFlow> getOutgoing() {
-    return outgoing;
-  }
-
-  public void addOutgoing(ExecutableSequenceFlow flow) {
-    this.outgoing.add(flow);
-  }
-
-  public List<ExecutableSequenceFlow> getIncoming() {
-    return incoming;
-  }
-
-  public void addIncoming(ExecutableSequenceFlow flow) {
-    this.incoming.add(flow);
-  }
-
-  public Mapping[] getInputMappings() {
-    return inputMappings;
-  }
-
-  public void setInputMappings(Mapping[] inputMappings) {
-    this.inputMappings = inputMappings;
-  }
-
-  public void setOutputMappings(Mapping[] outputMappings) {
-    this.outputMappings = outputMappings;
-  }
-
-  public Mapping[] getOutputMappings() {
-    return outputMappings;
-  }
+  Mapping[] getOutputMappings();
 }

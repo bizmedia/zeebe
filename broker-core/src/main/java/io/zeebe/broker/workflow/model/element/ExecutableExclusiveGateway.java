@@ -20,7 +20,7 @@ package io.zeebe.broker.workflow.model.element;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ExecutableExclusiveGateway extends ExecutableFlowNode {
+public class ExecutableExclusiveGateway extends ExecutableFlowNodeImpl {
 
   private ExecutableSequenceFlow defaultFlow;
 

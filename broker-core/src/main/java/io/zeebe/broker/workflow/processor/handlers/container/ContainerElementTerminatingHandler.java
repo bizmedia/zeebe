@@ -21,14 +21,14 @@ import io.zeebe.broker.incident.processor.IncidentState;
 import io.zeebe.broker.workflow.model.element.ExecutableFlowElementContainer;
 import io.zeebe.broker.workflow.processor.BpmnStepContext;
 import io.zeebe.broker.workflow.processor.EventOutput;
-import io.zeebe.broker.workflow.processor.handlers.activity.ActivityElementTerminatingHandler;
+import io.zeebe.broker.workflow.processor.handlers.catchevent.CatchEventSupplierElementTerminatingHandler;
 import io.zeebe.broker.workflow.state.ElementInstance;
 import io.zeebe.broker.workflow.state.ElementInstanceState;
 import io.zeebe.protocol.intent.WorkflowInstanceIntent;
 import java.util.List;
 
 public class ContainerElementTerminatingHandler<T extends ExecutableFlowElementContainer>
-    extends ActivityElementTerminatingHandler<T> {
+    extends CatchEventSupplierElementTerminatingHandler<T> {
 
   public ContainerElementTerminatingHandler(IncidentState incidentState) {
     this(null, incidentState);

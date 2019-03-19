@@ -93,6 +93,7 @@ public class EventScopeInstanceState {
    */
   public void createInstance(long eventScopeKey, Collection<DirectBuffer> interruptingIds) {
     this.eventScopeKey.wrapLong(eventScopeKey);
+    eventScopeInstance.reset();
     eventScopeInstance.setAccepting(true);
     for (DirectBuffer interruptingId : interruptingIds) {
       eventScopeInstance.addInterrupting(interruptingId);
@@ -139,17 +140,16 @@ public class EventScopeInstanceState {
    */
   public boolean triggerEvent(
       long eventScopeKey, long eventKey, DirectBuffer elementId, DirectBuffer payload) {
-    this.eventScopeKey.wrapLong(eventScopeKey);
-    final EventScopeInstance instance = eventScopeInstanceColumnFamily.get(this.eventScopeKey);
+    final EventScopeInstance instance = getInstance(eventScopeKey);
 
     if (instance != null && instance.isAccepting()) {
       if (instance.isInterrupting(elementId)) {
         instance.setAccepting(false);
+        this.eventScopeKey.wrapLong(eventScopeKey);
         eventScopeInstanceColumnFamily.put(this.eventScopeKey, instance);
       }
 
       createTrigger(eventScopeKey, eventKey, elementId, payload);
-
       return true;
     } else {
       return false;

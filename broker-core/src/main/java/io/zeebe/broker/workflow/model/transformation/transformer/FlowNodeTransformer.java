@@ -18,7 +18,7 @@
 package io.zeebe.broker.workflow.model.transformation.transformer;
 
 import io.zeebe.broker.workflow.model.BpmnStep;
-import io.zeebe.broker.workflow.model.element.ExecutableFlowNode;
+import io.zeebe.broker.workflow.model.element.ExecutableFlowNodeImpl;
 import io.zeebe.broker.workflow.model.element.ExecutableWorkflow;
 import io.zeebe.broker.workflow.model.transformation.ModelElementTransformer;
 import io.zeebe.broker.workflow.model.transformation.TransformContext;
@@ -43,14 +43,14 @@ public class FlowNodeTransformer implements ModelElementTransformer<FlowNode> {
   @Override
   public void transform(FlowNode flowNode, TransformContext context) {
     final ExecutableWorkflow workflow = context.getCurrentWorkflow();
-    final ExecutableFlowNode element =
-        workflow.getElementById(flowNode.getId(), ExecutableFlowNode.class);
+    final ExecutableFlowNodeImpl element =
+        workflow.getElementById(flowNode.getId(), ExecutableFlowNodeImpl.class);
 
     transformIoMappings(flowNode, element, context);
     bindLifecycle(element);
   }
 
-  private void bindLifecycle(ExecutableFlowNode element) {
+  private void bindLifecycle(ExecutableFlowNodeImpl element) {
     element.bindLifecycleState(
         WorkflowInstanceIntent.ELEMENT_ACTIVATING, BpmnStep.ELEMENT_ACTIVATING);
     element.bindLifecycleState(
@@ -67,7 +67,7 @@ public class FlowNodeTransformer implements ModelElementTransformer<FlowNode> {
   }
 
   private void transformIoMappings(
-      FlowNode element, final ExecutableFlowNode flowNode, TransformContext context) {
+      FlowNode element, final ExecutableFlowNodeImpl flowNode, TransformContext context) {
     final ZeebeIoMapping ioMapping = element.getSingleExtensionElement(ZeebeIoMapping.class);
 
     if (ioMapping != null) {

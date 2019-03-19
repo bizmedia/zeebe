@@ -24,7 +24,7 @@ import io.zeebe.broker.workflow.model.element.ExecutableCatchEventElement;
 import io.zeebe.broker.workflow.model.element.ExecutableEventBasedGateway;
 import io.zeebe.broker.workflow.model.element.ExecutableExclusiveGateway;
 import io.zeebe.broker.workflow.model.element.ExecutableFlowElementContainer;
-import io.zeebe.broker.workflow.model.element.ExecutableFlowNode;
+import io.zeebe.broker.workflow.model.element.ExecutableFlowNodeImpl;
 import io.zeebe.broker.workflow.model.element.ExecutableReceiveTask;
 import io.zeebe.broker.workflow.model.element.ExecutableSequenceFlow;
 import io.zeebe.broker.workflow.model.element.ExecutableServiceTask;
@@ -58,11 +58,11 @@ public class FlowElementInstantiationTransformer implements ModelElementTransfor
 
     ELEMENT_FACTORIES.put(Activity.class, ExecutableActivity::new);
     ELEMENT_FACTORIES.put(BoundaryEvent.class, ExecutableBoundaryEvent::new);
-    ELEMENT_FACTORIES.put(EndEvent.class, ExecutableFlowNode::new);
+    ELEMENT_FACTORIES.put(EndEvent.class, ExecutableFlowNodeImpl::new);
     ELEMENT_FACTORIES.put(EventBasedGateway.class, ExecutableEventBasedGateway::new);
     ELEMENT_FACTORIES.put(ExclusiveGateway.class, ExecutableExclusiveGateway::new);
     ELEMENT_FACTORIES.put(IntermediateCatchEvent.class, ExecutableCatchEventElement::new);
-    ELEMENT_FACTORIES.put(ParallelGateway.class, ExecutableFlowNode::new);
+    ELEMENT_FACTORIES.put(ParallelGateway.class, ExecutableFlowNodeImpl::new);
     ELEMENT_FACTORIES.put(SequenceFlow.class, ExecutableSequenceFlow::new);
     ELEMENT_FACTORIES.put(ServiceTask.class, ExecutableServiceTask::new);
     ELEMENT_FACTORIES.put(ReceiveTask.class, ExecutableReceiveTask::new);

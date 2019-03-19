@@ -19,6 +19,7 @@ package io.zeebe.broker.workflow.model.transformation.transformer;
 
 import io.zeebe.broker.workflow.model.BpmnStep;
 import io.zeebe.broker.workflow.model.element.ExecutableFlowNode;
+import io.zeebe.broker.workflow.model.element.ExecutableFlowNodeImpl;
 import io.zeebe.broker.workflow.model.element.ExecutableSequenceFlow;
 import io.zeebe.broker.workflow.model.element.ExecutableWorkflow;
 import io.zeebe.broker.workflow.model.transformation.ModelElementTransformer;
@@ -62,10 +63,10 @@ public class SequenceFlowTransformer implements ModelElementTransformer<Sequence
       final SequenceFlow element,
       final ExecutableWorkflow workflow,
       final ExecutableSequenceFlow sequenceFlow) {
-    final ExecutableFlowNode source =
-        workflow.getElementById(element.getSource().getId(), ExecutableFlowNode.class);
-    final ExecutableFlowNode target =
-        workflow.getElementById(element.getTarget().getId(), ExecutableFlowNode.class);
+    final ExecutableFlowNodeImpl source =
+        workflow.getElementById(element.getSource().getId(), ExecutableFlowNodeImpl.class);
+    final ExecutableFlowNodeImpl target =
+        workflow.getElementById(element.getTarget().getId(), ExecutableFlowNodeImpl.class);
 
     source.addOutgoing(sequenceFlow);
     target.addIncoming(sequenceFlow);

@@ -22,7 +22,7 @@ import java.util.Collection;
 import java.util.List;
 import org.agrona.DirectBuffer;
 
-public class ExecutableEventBasedGateway extends ExecutableFlowNode
+public class ExecutableEventBasedGateway extends ExecutableFlowNodeImpl
     implements ExecutableCatchEventSupplier {
 
   private List<ExecutableCatchEvent> events;

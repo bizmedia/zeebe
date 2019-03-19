@@ -18,6 +18,7 @@
 package io.zeebe.broker.workflow.model.transformation.transformer;
 
 import io.zeebe.broker.workflow.model.element.ExecutableFlowNode;
+import io.zeebe.broker.workflow.model.element.ExecutableFlowNodeImpl;
 import io.zeebe.broker.workflow.model.element.ExecutableWorkflow;
 import io.zeebe.broker.workflow.model.transformation.ModelElementTransformer;
 import io.zeebe.broker.workflow.model.transformation.TransformContext;
@@ -34,6 +35,6 @@ public class EndEventTransformer implements ModelElementTransformer<EndEvent> {
   public void transform(EndEvent element, TransformContext context) {
     final ExecutableWorkflow currentWorkflow = context.getCurrentWorkflow();
     final ExecutableFlowNode endEvent =
-        currentWorkflow.getElementById(element.getId(), ExecutableFlowNode.class);
+        currentWorkflow.getElementById(element.getId(), ExecutableFlowNodeImpl.class);
   }
 }

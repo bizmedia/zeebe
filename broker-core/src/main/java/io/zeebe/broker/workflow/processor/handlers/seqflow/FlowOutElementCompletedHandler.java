@@ -17,7 +17,7 @@
  */
 package io.zeebe.broker.workflow.processor.handlers.seqflow;
 
-import io.zeebe.broker.workflow.model.element.ExecutableFlowNode;
+import io.zeebe.broker.workflow.model.element.ExecutableFlowNodeImpl;
 import io.zeebe.broker.workflow.model.element.ExecutableSequenceFlow;
 import io.zeebe.broker.workflow.processor.BpmnStepContext;
 import io.zeebe.broker.workflow.processor.handlers.element.ElementCompletedHandler;
@@ -30,7 +30,7 @@ import java.util.List;
  *
  * @param <T>
  */
-public class FlowOutElementCompletedHandler<T extends ExecutableFlowNode>
+public class FlowOutElementCompletedHandler<T extends ExecutableFlowNodeImpl>
     extends ElementCompletedHandler<T> {
   public FlowOutElementCompletedHandler() {
     super();

@@ -23,7 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import org.agrona.DirectBuffer;
 
-public class ExecutableCatchEventElement extends ExecutableFlowNode
+public class ExecutableCatchEventElement extends ExecutableFlowNodeImpl
     implements ExecutableCatchEvent, ExecutableCatchEventSupplier {
   private final List<ExecutableCatchEvent> events = Collections.singletonList(this);
 

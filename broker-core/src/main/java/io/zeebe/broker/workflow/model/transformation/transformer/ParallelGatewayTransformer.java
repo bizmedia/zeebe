@@ -18,7 +18,7 @@
 package io.zeebe.broker.workflow.model.transformation.transformer;
 
 import io.zeebe.broker.workflow.model.BpmnStep;
-import io.zeebe.broker.workflow.model.element.ExecutableFlowNode;
+import io.zeebe.broker.workflow.model.element.ExecutableFlowNodeImpl;
 import io.zeebe.broker.workflow.model.element.ExecutableWorkflow;
 import io.zeebe.broker.workflow.model.transformation.ModelElementTransformer;
 import io.zeebe.broker.workflow.model.transformation.TransformContext;
@@ -35,8 +35,8 @@ public class ParallelGatewayTransformer implements ModelElementTransformer<Paral
   @Override
   public void transform(ParallelGateway element, TransformContext context) {
     final ExecutableWorkflow workflow = context.getCurrentWorkflow();
-    final ExecutableFlowNode gateway =
-        workflow.getElementById(element.getId(), ExecutableFlowNode.class);
+    final ExecutableFlowNodeImpl gateway =
+        workflow.getElementById(element.getId(), ExecutableFlowNodeImpl.class);
 
     gateway.bindLifecycleState(
         WorkflowInstanceIntent.ELEMENT_COMPLETED, BpmnStep.FLOWOUT_ELEMENT_COMPLETED);
