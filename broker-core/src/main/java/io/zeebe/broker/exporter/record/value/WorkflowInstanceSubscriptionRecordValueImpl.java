@@ -18,11 +18,11 @@
 package io.zeebe.broker.exporter.record.value;
 
 import io.zeebe.broker.exporter.ExporterObjectMapper;
-import io.zeebe.broker.exporter.record.RecordValueWithPayloadImpl;
+import io.zeebe.broker.exporter.record.RecordValueWithVariablesImpl;
 import io.zeebe.exporter.record.value.WorkflowInstanceSubscriptionRecordValue;
 import java.util.Objects;
 
-public class WorkflowInstanceSubscriptionRecordValueImpl extends RecordValueWithPayloadImpl
+public class WorkflowInstanceSubscriptionRecordValueImpl extends RecordValueWithVariablesImpl
     implements WorkflowInstanceSubscriptionRecordValue {
   private final String messageName;
   private final long workflowInstanceKey;
@@ -88,8 +88,8 @@ public class WorkflowInstanceSubscriptionRecordValueImpl extends RecordValueWith
         + workflowInstanceKey
         + ", elementInstanceKey="
         + elementInstanceKey
-        + ", payload='"
-        + payload
+        + ", variables='"
+        + variables
         + '\''
         + '}';
   }

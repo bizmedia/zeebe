@@ -115,7 +115,7 @@ public class JobInputMappingTest {
             .withWorkflowInstanceKey(workflowInstanceKey)
             .getFirst();
 
-    JsonUtil.assertEquality(jobCreated.getValue().getPayload(), expectedPayload);
+    JsonUtil.assertEquality(jobCreated.getValue().getVariables(), expectedPayload);
   }
 
   private static Consumer<ServiceTaskBuilder> mapping(Consumer<ServiceTaskBuilder> mappingBuilder) {

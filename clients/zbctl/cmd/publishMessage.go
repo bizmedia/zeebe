@@ -37,7 +37,7 @@ var publishMessageCmd = &cobra.Command{
 			CorrelationKey(publishMessageCorrelationKey).
 			MessageId(publishMessageId).
 			TimeToLive(publishMessageTtl).
-			PayloadFromString(publishMessagePayload)
+            VariablesFromString(publishMessagePayload)
 
 		if err != nil {
 			return err
@@ -54,7 +54,7 @@ func init() {
 	publishMessageCmd.Flags().StringVar(&publishMessageCorrelationKey, "correlationKey", "", "Specify message correlation key")
 	publishMessageCmd.Flags().StringVar(&publishMessageId, "messageId", "", "Specify the unique id of the message")
 	publishMessageCmd.Flags().DurationVar(&publishMessageTtl, "ttl", 5 * time.Second, "Specify the time to live of the message")
-	publishMessageCmd.Flags().StringVar(&publishMessagePayload, "payload", "{}", "Specify message payload as JSON string")
+	publishMessageCmd.Flags().StringVar(&publishMessagePayload, "variables", "{}", "Specify message variables as JSON string")
 
 	publishMessageCmd.MarkFlagRequired("correlationKey")
 }

@@ -17,11 +17,11 @@ package io.zeebe.exporter.record;
 
 import java.util.Map;
 
-/** Shared behaviour for all record values containing a payload document. */
-public interface RecordValueWithPayload extends RecordValue {
-  /** @return JSON-formatted payload */
-  String getPayload();
+/** Shared behaviour for all record values containing a variables document. */
+public interface RecordValueWithVariables extends RecordValue {
+  /** @return JSON-formatted variables */
+  String getVariables();
 
-  /** @return de-serialized payload as map */
-  Map<String, Object> getPayloadAsMap();
+  /** @return de-serialized variables as map */
+  Map<String, Object> getVariablesAsMap();
 }

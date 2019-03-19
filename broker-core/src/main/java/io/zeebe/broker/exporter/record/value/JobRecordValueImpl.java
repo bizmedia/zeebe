@@ -18,7 +18,7 @@
 package io.zeebe.broker.exporter.record.value;
 
 import io.zeebe.broker.exporter.ExporterObjectMapper;
-import io.zeebe.broker.exporter.record.RecordValueWithPayloadImpl;
+import io.zeebe.broker.exporter.record.RecordValueWithVariablesImpl;
 import io.zeebe.broker.exporter.record.value.job.HeadersImpl;
 import io.zeebe.exporter.record.value.JobRecordValue;
 import io.zeebe.exporter.record.value.job.Headers;
@@ -26,7 +26,7 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
 
-public class JobRecordValueImpl extends RecordValueWithPayloadImpl implements JobRecordValue {
+public class JobRecordValueImpl extends RecordValueWithVariablesImpl implements JobRecordValue {
   private final String type;
   private final String worker;
   private final Instant deadline;
@@ -137,8 +137,8 @@ public class JobRecordValueImpl extends RecordValueWithPayloadImpl implements Jo
         + ", errorMessage='"
         + errorMessage
         + '\''
-        + ", payload='"
-        + payload
+        + ", variables='"
+        + variables
         + '\''
         + '}';
   }

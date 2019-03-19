@@ -122,9 +122,9 @@ public class JobBatchActivateProcessor implements TypedRecordProcessor<JobBatchR
           final long elementInstanceKey = jobRecord.getHeaders().getElementInstanceKey();
           if (elementInstanceKey >= 0) {
             final DirectBuffer payload = collectPayload(variableNames, elementInstanceKey);
-            jobRecord.setPayload(payload);
+            jobRecord.setVariables(payload);
           } else {
-            jobRecord.setPayload(DocumentValue.EMPTY_DOCUMENT);
+            jobRecord.setVariables(DocumentValue.EMPTY_DOCUMENT);
           }
 
           if (remainingAmount >= 0

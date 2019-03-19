@@ -51,13 +51,13 @@ public class HandlePayloadAsPojo {
     @Override
     public void handle(final JobClient client, final ActivatedJob job) {
       // read the payload of the job
-      final Order order = job.getPayloadAsType(Order.class);
+      final Order order = job.getVariablesAsType(Order.class);
       System.out.println("new job with orderId: " + order.getOrderId());
 
       // update the payload and complete the job
       order.setTotalPrice(46.50);
 
-      client.newCompleteCommand(job.getKey()).payload(order).send();
+      client.newCompleteCommand(job.getKey()).variables(order).send();
     }
   }
 

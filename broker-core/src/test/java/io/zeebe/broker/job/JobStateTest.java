@@ -122,9 +122,9 @@ public class JobStateTest {
 
     // when job state is updated then the payload is not persisted
     for (BiConsumer<Long, JobRecord> stateUpdate : stateUpdates) {
-      jobRecord.setPayload(MsgPackUtil.asMsgPack("foo", "bar"));
+      jobRecord.setVariables(MsgPackUtil.asMsgPack("foo", "bar"));
       stateUpdate.accept(key, jobRecord);
-      final DirectBuffer payload = jobState.getJob(key).getPayload();
+      final DirectBuffer payload = jobState.getJob(key).getVariables();
       BufferAssert.assertThatBuffer(payload).isEqualTo(DocumentValue.EMPTY_DOCUMENT);
     }
   }
@@ -455,7 +455,7 @@ public class JobStateTest {
     assertThat(jobRecord.getRetries()).isEqualTo(expected.getRetries());
     assertThat(jobRecord.getType()).isEqualTo(expected.getType());
     assertThat(jobRecord.getCustomHeaders()).isEqualTo(expected.getCustomHeaders());
-    assertThat(jobRecord.getPayload()).isEqualTo(expected.getPayload());
+    assertThat(jobRecord.getVariables()).isEqualTo(expected.getVariables());
   }
 
   private void assertListedAsActivatable(final long key, final DirectBuffer type) {

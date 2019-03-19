@@ -196,7 +196,7 @@ public class MessageCorrelationMultiplePartitionsTest {
         .newPublishMessageCommand()
         .messageName("message")
         .correlationKey(correlationKey)
-        .payload(payload)
+        .variables(payload)
         .send()
         .join();
   }

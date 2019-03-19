@@ -191,7 +191,7 @@ public class BrokerReprocessingTest {
         .newWorker()
         .jobType("foo")
         .handler(
-            (client, job) -> client.newCompleteCommand(job.getKey()).payload(NULL_PAYLOAD).send())
+            (client, job) -> client.newCompleteCommand(job.getKey()).variables(NULL_PAYLOAD).send())
         .open();
 
     // then
@@ -252,7 +252,7 @@ public class BrokerReprocessingTest {
         .newWorker()
         .jobType("foo")
         .handler(
-            (client, job) -> client.newCompleteCommand(job.getKey()).payload(NULL_PAYLOAD).send())
+            (client, job) -> client.newCompleteCommand(job.getKey()).variables(NULL_PAYLOAD).send())
         .open();
 
     final CountDownLatch latch = new CountDownLatch(1);
@@ -278,7 +278,7 @@ public class BrokerReprocessingTest {
         .newWorker()
         .jobType("bar")
         .handler(
-            (client, job) -> client.newCompleteCommand(job.getKey()).payload(NULL_PAYLOAD).send())
+            (client, job) -> client.newCompleteCommand(job.getKey()).variables(NULL_PAYLOAD).send())
         .open();
 
     // then
@@ -704,7 +704,7 @@ public class BrokerReprocessingTest {
         .newPublishMessageCommand()
         .messageName(messageName)
         .correlationKey(correlationKey)
-        .payload(payload)
+        .variables(payload)
         .send()
         .join();
   }

@@ -57,7 +57,7 @@ public class JobRequestStub {
     final JobRecord value = new JobRecord();
     value.setCustomHeaders(CUSTOM_HEADERS);
     value.setDeadline(DEADLINE);
-    value.setPayload(PAYLOAD);
+    value.setVariables(PAYLOAD);
     value.setRetries(RETRIES);
     value.setType(TYPE);
     value.setWorker(WORKER);

@@ -64,7 +64,7 @@ public class JobWorkerCreator {
               job.getKey(),
               job.getDeadline().toString(),
               job.getHeaders(),
-              job.getPayload()));
+              job.getVariables()));
 
       client.newCompleteCommand(job.getKey()).send().join();
     }

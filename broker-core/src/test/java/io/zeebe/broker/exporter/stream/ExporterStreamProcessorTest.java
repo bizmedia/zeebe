@@ -461,7 +461,7 @@ public class ExporterStreamProcessorTest {
         new JobRecord()
             .setWorker(wrapString(worker))
             .setType(wrapString(type))
-            .setPayload(PAYLOAD_MSGPACK)
+            .setVariables(PAYLOAD_MSGPACK)
             .setRetries(retries)
             .setDeadline(deadline)
             .setErrorMessage("failed message");
@@ -510,7 +510,7 @@ public class ExporterStreamProcessorTest {
         new MessageRecord()
             .setCorrelationKey(wrapString(correlationKey))
             .setName(wrapString(messageName))
-            .setPayload(PAYLOAD_MSGPACK)
+            .setVariables(PAYLOAD_MSGPACK)
             .setTimeToLive(timeToLive)
             .setMessageId(wrapString(messageId));
 
@@ -611,7 +611,7 @@ public class ExporterStreamProcessorTest {
             .setMessageName(wrapString(messageName))
             .setSubscriptionPartitionId(subscriptionPartitionId)
             .setWorkflowInstanceKey(workflowInstanceKey)
-            .setPayload(PAYLOAD_MSGPACK);
+            .setVariables(PAYLOAD_MSGPACK);
 
     final WorkflowInstanceSubscriptionRecordValue recordValue =
         new WorkflowInstanceSubscriptionRecordValueImpl(
@@ -650,7 +650,7 @@ public class ExporterStreamProcessorTest {
     jobRecord
         .setWorker(wrapString(worker))
         .setType(wrapString(type))
-        .setPayload(PAYLOAD_MSGPACK)
+        .setVariables(PAYLOAD_MSGPACK)
         .setRetries(3)
         .setErrorMessage("failed message")
         .setDeadline(1000L);

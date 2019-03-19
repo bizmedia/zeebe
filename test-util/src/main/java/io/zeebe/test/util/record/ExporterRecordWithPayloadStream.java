@@ -16,12 +16,12 @@
 package io.zeebe.test.util.record;
 
 import io.zeebe.exporter.record.Record;
-import io.zeebe.exporter.record.RecordValueWithPayload;
+import io.zeebe.exporter.record.RecordValueWithVariables;
 import java.util.Map;
 import java.util.stream.Stream;
 
 public abstract class ExporterRecordWithPayloadStream<
-        T extends RecordValueWithPayload, S extends ExporterRecordWithPayloadStream<T, S>>
+        T extends RecordValueWithVariables, S extends ExporterRecordWithPayloadStream<T, S>>
     extends ExporterRecordStream<T, S> {
 
   public ExporterRecordWithPayloadStream(final Stream<Record<T>> wrappedStream) {
@@ -29,18 +29,18 @@ public abstract class ExporterRecordWithPayloadStream<
   }
 
   public S withPayload(final String payload) {
-    return valueFilter(v -> payload.equals(v.getPayload()));
+    return valueFilter(v -> payload.equals(v.getVariables()));
   }
 
   public S withPayload(final Map<String, Object> payload) {
-    return valueFilter(v -> payload.equals(v.getPayloadAsMap()));
+    return valueFilter(v -> payload.equals(v.getVariablesAsMap()));
   }
 
   public S withPayloadContaining(final String key) {
-    return valueFilter(v -> v.getPayloadAsMap().containsKey(key));
+    return valueFilter(v -> v.getVariablesAsMap().containsKey(key));
   }
 
   public S withPayloadContaining(final String key, final Object value) {
-    return valueFilter(v -> value.equals(v.getPayloadAsMap().get(key)));
+    return valueFilter(v -> value.equals(v.getVariablesAsMap().get(key)));
   }
 }

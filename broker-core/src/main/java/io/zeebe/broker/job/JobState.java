@@ -286,7 +286,7 @@ public class JobState {
   private void resetPayloadAndUpdateJobRecord(long key, JobRecord updatedValue) {
     jobKey.wrapLong(key);
     // do not persist payload in job state
-    updatedValue.resetPayload();
+    updatedValue.resetVariables();
     jobRecordToWrite.wrapObject(updatedValue);
     jobsColumnFamily.put(jobKey, jobRecordToWrite);
   }

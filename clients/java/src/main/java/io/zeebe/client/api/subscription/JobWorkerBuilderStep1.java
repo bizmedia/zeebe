@@ -41,7 +41,7 @@ public interface JobWorkerBuilderStep1 {
      *   &#64;Override
      *   public void handle(JobClient client, JobEvent jobEvent)
      *   {
-     *     String json = jobEvent.getPayload();
+     *     String json = jobEvent.getVariables();
      *     // modify payload
      *
      *     client

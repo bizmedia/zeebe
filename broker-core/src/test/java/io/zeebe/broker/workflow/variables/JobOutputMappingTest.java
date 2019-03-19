@@ -62,7 +62,7 @@ public class JobOutputMappingTest {
       new RecordingExporterTestWatcher();
 
   @Parameter(0)
-  public String jobPayload;
+  public String jobVariables;
 
   @Parameter(1)
   public Consumer<ServiceTaskBuilder> mappings;
@@ -191,7 +191,7 @@ public class JobOutputMappingTest {
             .createWorkflowInstance(
                 r -> r.setKey(workflowKey).setVariables(MsgPackUtil.asMsgPack("i", 0)))
             .getInstanceKey();
-    apiRule.completeJob(jobType, MsgPackUtil.asMsgPack(jobPayload));
+    apiRule.completeJob(jobType, MsgPackUtil.asMsgPack(jobVariables));
 
     // then
     final long elementInstanceKey =

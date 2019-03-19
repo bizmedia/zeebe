@@ -103,7 +103,7 @@ public class ActivateJobsTest {
             ActivatedJob::getType,
             ActivatedJob::getWorker,
             ActivatedJob::getCustomHeaders,
-            ActivatedJob::getPayloadAsMap)
+            ActivatedJob::getVariablesAsMap)
         .containsOnly(tuple(JOB_TYPE, worker, CUSTOM_HEADERS, PAYLOAD));
 
     final List<Instant> deadlines =

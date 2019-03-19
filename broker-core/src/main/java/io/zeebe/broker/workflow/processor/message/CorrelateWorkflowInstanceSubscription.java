@@ -135,7 +135,7 @@ public final class CorrelateWorkflowInstanceSubscription
                 subscriptionRecord.getElementInstanceKey(),
                 eventKey,
                 subscription.getHandlerNodeId(),
-                record.getValue().getPayload());
+                record.getValue().getVariables());
 
     if (isOccurred) {
       streamWriter.appendFollowUpEvent(

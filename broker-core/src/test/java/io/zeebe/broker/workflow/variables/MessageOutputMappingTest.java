@@ -66,7 +66,7 @@ public class MessageOutputMappingTest {
       new RecordingExporterTestWatcher();
 
   @Parameter(0)
-  public String messagePayload;
+  public String messageVariables;
 
   @Parameter(1)
   public Consumer<IntermediateCatchEventBuilder> mappings;
@@ -165,18 +165,18 @@ public class MessageOutputMappingTest {
             .get(0)
             .getWorkflowKey();
 
-    final Map<String, Object> payload = new HashMap<>();
-    payload.put("i", 0);
-    payload.put(CORRELATION_VARIABLE, correlationKey);
+    final Map<String, Object> variables = new HashMap<>();
+    variables.put("i", 0);
+    variables.put(CORRELATION_VARIABLE, correlationKey);
 
     // when
     final long workflowInstanceKey =
         apiRule
             .partitionClient()
             .createWorkflowInstance(
-                r -> r.setKey(workflowKey).setVariables(MsgPackUtil.asMsgPack(payload)))
+                r -> r.setKey(workflowKey).setVariables(MsgPackUtil.asMsgPack(variables)))
             .getInstanceKey();
-    apiRule.publishMessage(MESSAGE_NAME, correlationKey, MsgPackUtil.asMsgPack(messagePayload));
+    apiRule.publishMessage(MESSAGE_NAME, correlationKey, MsgPackUtil.asMsgPack(messageVariables));
 
     // then
     final long elementInstanceKey =

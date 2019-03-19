@@ -45,7 +45,7 @@ var createWorkerCmd = &cobra.Command{
 	Use:   "worker <type>",
 	Short: "Create a polling job worker",
 	Long: `Create a polling job worker which will call the given handler for every job.
-The handler will receive the payload of the activated job as JSON object on stdin.
+The handler will receive the variables of the activated job as JSON object on stdin.
 If the handler finishes successful the job will be completed with the payload provided on stdout, again as JSON object.
 If the handler exits with an none zero exit code the job will be failed, the handler can provide a failure message on stderr.
 `,
@@ -71,8 +71,8 @@ If the handler exits with an none zero exit code the job will be failed, the han
 
 func handle(jobClient worker.JobClient, job entities.Job) {
 	key := job.Key
-	payload := job.Payload
-	log.Println("Activated job", key, "with payload", payload)
+	variables := job.Payload
+	log.Println("Activated job", key, "with variables", variables)
 
 	command := exec.Command(createWorkerHandlerArgs[0], createWorkerHandlerArgs[1:]...)
 
@@ -81,12 +81,12 @@ func handle(jobClient worker.JobClient, job entities.Job) {
 	command.Stdout = &stdout
 	command.Stderr = &stderr
 
-	// get stdin of handler command and send payload
+	// get stdin of handler command and send variables
 	stdin, err := command.StdinPipe()
 	if err != nil {
 		log.Fatal("Failed to get stdin for command", createWorkerHandlerFlag, err)
 	}
-	io.WriteString(stdin, payload)
+	io.WriteString(stdin, variables)
 	stdin.Close()
 
 	// start and wait for handler command to finish
@@ -98,7 +98,7 @@ func handle(jobClient worker.JobClient, job entities.Job) {
 	if command.Wait() == nil {
 		payload := string(stdout.Bytes())
 		if len(payload) < 2 {
-			// use empty payload if non was returned
+			// use empty variables if non was returned
 			payload = "{}"
 		}
 		completeJob(jobClient, job, payload)
@@ -107,13 +107,13 @@ func handle(jobClient worker.JobClient, job entities.Job) {
 	}
 }
 
-func completeJob(jobClient worker.JobClient, job entities.Job, payload string) {
+func completeJob(jobClient worker.JobClient, job entities.Job, variables string) {
 	key := job.Key
-	request, err := jobClient.NewCompleteJobCommand().JobKey(key).PayloadFromString(payload)
+	request, err := jobClient.NewCompleteJobCommand().JobKey(key).VariablesFromString(variables)
 	if err != nil {
-		failJob(jobClient, job, fmt.Sprint("Unable to set payload", payload, "to complete job", key, err))
+		failJob(jobClient, job, fmt.Sprint("Unable to set variables", variables, "to complete job", key, err))
 	} else {
-		log.Println("Handler completed job", job.Key, "with payload", payload)
+		log.Println("Handler completed job", job.Key, "with variables", variables)
 
 		_, err = request.Send()
 		if err != nil {

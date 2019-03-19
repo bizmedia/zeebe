@@ -59,7 +59,7 @@ public class ActivityInputMappingTest {
       new RecordingExporterTestWatcher();
 
   @Parameter(0)
-  public String initialPayload;
+  public String initialVariables;
 
   @Parameter(1)
   public Consumer<SubProcessBuilder> mappings;
@@ -111,7 +111,7 @@ public class ActivityInputMappingTest {
             .getWorkflowKey();
 
     // when
-    final DirectBuffer variables = MsgPackUtil.asMsgPack(initialPayload);
+    final DirectBuffer variables = MsgPackUtil.asMsgPack(initialVariables);
     final long workflowInstanceKey =
         apiRule
             .partitionClient()

@@ -354,7 +354,7 @@ public class PartitionTestClient {
         .type(ValueType.JOB, JobIntent.COMPLETE)
         .key(key)
         .command()
-        .put("payload", payload)
+        .put("variables", payload)
         .done()
         .sendAndAwait();
   }
@@ -469,7 +469,7 @@ public class PartitionTestClient {
         .put("name", messageName)
         .put("correlationKey", correlationKey)
         .put("timeToLive", ttl)
-        .put("payload", payload)
+        .put("variables", payload)
         .done()
         .sendAndAwait();
   }
