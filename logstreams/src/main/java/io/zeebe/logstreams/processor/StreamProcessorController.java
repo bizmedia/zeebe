@@ -134,7 +134,10 @@ public class StreamProcessorController extends Actor {
     try {
 
       snapshotPosition = recoverFromSnapshot(logStream.getCommitPosition(), logStream.getTerm());
+      LOG.info("Recovering from snapshot at position {}", snapshotPosition);
+
       lastSourceEventPosition = seekFromSnapshotPositionToLastSourceEvent();
+      LOG.info("Reprocessing from last source event position {}", lastSourceEventPosition);
 
       zeebeDb = snapshotController.openDb();
       streamProcessor = streamProcessorFactory.createProcessor(zeebeDb);
