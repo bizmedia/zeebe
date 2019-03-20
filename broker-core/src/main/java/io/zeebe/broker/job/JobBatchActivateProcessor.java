@@ -79,7 +79,7 @@ public class JobBatchActivateProcessor implements TypedRecordProcessor<JobBatchR
       final TypedStreamWriter streamWriter) {
     final JobBatchRecord value = record.getValue();
 
-    final long jobBatchKey = streamWriter.getKeyGenerator().nextKey();
+    // final long jobBatchKey = streamWriter.getKeyGenerator().nextKey();
 
     final AtomicInteger amount = new AtomicInteger(value.getAmount());
     collectJobsToActivate(record, amount);
@@ -91,8 +91,8 @@ public class JobBatchActivateProcessor implements TypedRecordProcessor<JobBatchR
     // set/use this object for writing the new job state
     activateJobs(streamWriter, value);
 
-    streamWriter.appendFollowUpEvent(jobBatchKey, JobBatchIntent.ACTIVATED, value);
-    responseWriter.writeEventOnCommand(jobBatchKey, JobBatchIntent.ACTIVATED, value, record);
+    streamWriter.appendFollowUpEvent(-1, JobBatchIntent.ACTIVATED, value);
+    responseWriter.writeEventOnCommand(-1, JobBatchIntent.ACTIVATED, value, record);
   }
 
   private void collectJobsToActivate(TypedRecord<JobBatchRecord> record, AtomicInteger amount) {

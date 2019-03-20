@@ -88,6 +88,9 @@ public class JobState {
   }
 
   private void createJob(long key, JobRecord record, DirectBuffer type) {
+    if (exists(key)) {
+      throw new AssertionError(String.format("Job %d should not already exist", key));
+    }
     resetPayloadAndUpdateJobRecord(key, record);
     updateJobState(State.ACTIVATABLE);
     makeJobActivatable(type);
@@ -125,8 +128,8 @@ public class JobState {
 
     zeebeDb.transaction(
         () -> {
-          createJob(key, record, type);
-
+          updateJobState(State.ACTIVATABLE);
+          makeJobActivatable(type);
           removeJobDeadline(deadline);
         });
   }

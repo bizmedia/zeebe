@@ -77,7 +77,11 @@ public abstract class AbstractHandler<T extends ExecutableFlowElement>
    * ACTIVATED, and we shouldn't process the ELEMENT_ACTIVATING in that case).
    */
   protected boolean isStateSameAsElementState(BpmnStepContext<T> context) {
-    return context.getState() == context.getElementInstance().getState();
+    try {
+      return context.getState() == context.getElementInstance().getState();
+    } catch (NullPointerException e) {
+      throw e;
+    }
   }
 
   protected boolean isElementActive(ElementInstance instance) {

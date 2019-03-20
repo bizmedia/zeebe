@@ -26,6 +26,7 @@ import io.zeebe.logstreams.processor.EventProcessor;
 import io.zeebe.logstreams.processor.StreamProcessor;
 import io.zeebe.logstreams.processor.StreamProcessorContext;
 import io.zeebe.msgpack.UnpackedObject;
+import io.zeebe.protocol.WorkflowInstanceRelated;
 import io.zeebe.protocol.clientapi.RecordType;
 import io.zeebe.protocol.clientapi.RejectionType;
 import io.zeebe.protocol.clientapi.ValueType;
@@ -171,14 +172,40 @@ public class TypedStreamProcessor implements StreamProcessor {
     public void processEvent() {
       resetOutput();
 
+      final long startKey = zeebeState.getKeyState().getKey();
+
+      if (event.getPosition() == 777389724704L && logStream.getPartitionId() == 0) {
+        LOG.info("Evil event");
+      }
+
       // default side effect is responses; can be changed by processor
-      sideEffectProducer = responseWriter;
+      {
+        sideEffectProducer = responseWriter;
+      }
 
       final boolean isNotOnBlacklist = !zeebeState.isOnBlacklist(event);
       if (isNotOnBlacklist) {
         eventProcessor.processRecord(
             position, event, responseWriter, writer, this::setSideEffectProducer);
+      } else {
+        LOG.info(
+            "Skipping record {}.{}#{} for blacklisted workflow instance {}",
+            event.getMetadata().getValueType().name(),
+            event.getMetadata().getIntent().name(),
+            event.getKey(),
+            ((WorkflowInstanceRelated) event).getWorkflowInstanceKey());
       }
+
+      LOG.info(
+          "FINDME({}): Key range {}-{} for event at {}-{} ({}.{}#{})",
+          logStream.getPartitionId(),
+          startKey,
+          zeebeState.getKeyState().getKey(),
+          logStream.getPartitionId(),
+          event.getPosition(),
+          event.getMetadata().getValueType().name(),
+          event.getMetadata().getIntent().name(),
+          event.getKey());
     }
 
     @Override

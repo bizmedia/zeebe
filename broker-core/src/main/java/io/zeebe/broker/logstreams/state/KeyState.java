@@ -42,6 +42,10 @@ public class KeyState implements KeyGenerator {
     nextValueManager = new NextValueManager(keyStartValue, zeebeDb, ZbColumnFamilies.KEY);
   }
 
+  public long getKey() {
+    return nextValueManager.getValue(LATEST_KEY);
+  }
+
   @Override
   public long nextKey() {
     return nextValueManager.getNextValue(LATEST_KEY);

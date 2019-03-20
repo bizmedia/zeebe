@@ -163,6 +163,8 @@ public class EventScopeInstanceState {
 
     eventTrigger.setElementId(elementId).setPayload(payload).setEventKey(eventKey);
 
+    assert !eventTriggerColumnFamily.exists(eventTriggerKey)
+        : "event trigger should not already exist!";
     eventTriggerColumnFamily.put(eventTriggerKey, eventTrigger);
   }
 

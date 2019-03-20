@@ -73,6 +73,16 @@ public class BpmnStepProcessor implements TypedRecordProcessor<WorkflowInstanceR
       Consumer<SideEffectProducer> sideEffect) {
 
     populateEventContext(record, streamWriter, sideEffect);
+
+    if (context.getElementInstance() != null) {
+      final long elementInstanceKey = context.getElementInstance().getKey();
+      if (record.getKey() != elementInstanceKey) {
+        throw new AssertionError(
+            String.format(
+                "Record key %d != elementInstanceKey %d", record.getKey(), elementInstanceKey));
+      }
+    }
+
     stepHandlers.handle(context);
     elementInstanceState.flushDirtyState();
   }

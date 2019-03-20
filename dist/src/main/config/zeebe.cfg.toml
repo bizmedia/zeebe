@@ -182,7 +182,7 @@
 # defaultSegmentSize = "512M"
 
 # How often we take snapshots of streams (time unit)
-# snapshotPeriod = "15m"
+snapshotPeriod = "30s"
 
 # How often follower partitions will check for new snapshots to replicate from
 # the leader partitions. Snapshot replication enables faster failover by

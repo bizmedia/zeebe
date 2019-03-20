@@ -17,6 +17,7 @@
  */
 package io.zeebe.broker.workflow.state;
 
+import io.zeebe.broker.Loggers;
 import io.zeebe.broker.logstreams.processor.KeyGenerator;
 import io.zeebe.broker.logstreams.processor.TypedRecord;
 import io.zeebe.broker.logstreams.state.ZbColumnFamilies;
@@ -106,6 +107,11 @@ public class ElementInstanceState {
       WorkflowInstanceRecord value,
       WorkflowInstanceIntent state) {
 
+    elementInstanceKey.wrapLong(key);
+    if (elementInstanceColumnFamily.exists(elementInstanceKey)) {
+      throw new AssertionError(String.format("Element %d should not already exist!", key));
+    }
+
     final ElementInstance instance;
     if (parent == null) {
       instance = new ElementInstance(key, state, value);
@@ -120,6 +126,10 @@ public class ElementInstanceState {
   private void writeElementInstance(ElementInstance instance) {
     elementInstanceKey.wrapLong(instance.getKey());
     parentKey.wrapLong(instance.getParentKey());
+
+    if (instance.getKey() == 55633L) {
+      Loggers.WORKFLOW_PROCESSOR_LOGGER.info("Evil element");
+    }
 
     elementInstanceColumnFamily.put(elementInstanceKey, instance);
     parentChildColumnFamily.put(parentChildKey, DbNil.INSTANCE);

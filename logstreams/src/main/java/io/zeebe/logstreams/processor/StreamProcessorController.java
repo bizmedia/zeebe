@@ -137,7 +137,7 @@ public class StreamProcessorController extends Actor {
       LOG.info("Recovering from snapshot at position {}", snapshotPosition);
 
       lastSourceEventPosition = seekFromSnapshotPositionToLastSourceEvent();
-      LOG.info("Reprocessing from last source event position {}", lastSourceEventPosition);
+      LOG.info("Reprocessing until last source event position {}", lastSourceEventPosition);
 
       zeebeDb = snapshotController.openDb();
       streamProcessor = streamProcessorFactory.createProcessor(zeebeDb);

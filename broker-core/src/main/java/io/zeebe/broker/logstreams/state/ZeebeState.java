@@ -62,6 +62,10 @@ public class ZeebeState {
     blackList = new BlackList(zeebeDb);
   }
 
+  public KeyState getKeyState() {
+    return keyState;
+  }
+
   public DeploymentsState getDeploymentState() {
     return deploymentState;
   }

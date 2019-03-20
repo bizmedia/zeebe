@@ -46,6 +46,12 @@ public class NextValueManager {
     nextValueColumnFamily = zeebeDb.createColumnFamily(columnFamily, nextValueKey, nextValue);
   }
 
+  public long getValue(String key) {
+    nextValueKey.wrapString(key);
+    final DbLong zbLong = nextValueColumnFamily.get(nextValueKey);
+    return zbLong == null ? initialValue : zbLong.getValue();
+  }
+
   public long getNextValue(String key) {
     nextValueKey.wrapString(key);
 

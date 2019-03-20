@@ -105,6 +105,10 @@ public class WorkflowPersistenceCache {
       final long workflowKey, final Workflow workflow, final DeploymentResource resource) {
     persistedWorkflow.wrap(resource, workflow, workflowKey);
     this.workflowKey.wrapLong(workflowKey);
+    if (workflowColumnFamily.exists(this.workflowKey)) {
+      throw new AssertionError(
+          String.format("Workflow with key %d should not already exist", workflowKey));
+    }
     workflowColumnFamily.put(this.workflowKey, persistedWorkflow);
 
     workflowId.wrapBuffer(workflow.getBpmnProcessId());

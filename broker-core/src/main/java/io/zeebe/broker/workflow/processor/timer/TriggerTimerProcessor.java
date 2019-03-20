@@ -130,7 +130,6 @@ public class TriggerTimerProcessor implements TypedRecordProcessor<TimerRecord> 
 
     eventOccurredRecord.reset();
     if (isTimerStartEvent(elementInstanceKey)) {
-
       eventOccurredKey = streamWriter.getKeyGenerator().nextKey();
       eventOccurredRecord
           .setBpmnElementType(BpmnElementType.START_EVENT)
