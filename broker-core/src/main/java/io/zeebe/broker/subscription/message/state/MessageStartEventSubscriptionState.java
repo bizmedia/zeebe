@@ -21,6 +21,7 @@ import io.zeebe.broker.logstreams.state.UnpackedObjectValue;
 import io.zeebe.broker.logstreams.state.ZbColumnFamilies;
 import io.zeebe.broker.subscription.message.data.MessageStartEventSubscriptionRecord;
 import io.zeebe.db.ColumnFamily;
+import io.zeebe.db.DbContext;
 import io.zeebe.db.ZeebeDb;
 import io.zeebe.db.impl.DbCompositeKey;
 import io.zeebe.db.impl.DbLong;
@@ -31,6 +32,7 @@ import org.agrona.DirectBuffer;
 public class MessageStartEventSubscriptionState {
 
   private final ZeebeDb<ZbColumnFamilies> zeebeDb;
+  private final DbContext dbContext;
 
   private final DbString messageName;
   private final DbLong workflowKey;
@@ -47,8 +49,10 @@ public class MessageStartEventSubscriptionState {
   private final ColumnFamily<DbCompositeKey<DbLong, DbString>, DbNil>
       subscriptionsOfWorkflowKeyColumnfamily;
 
-  public MessageStartEventSubscriptionState(ZeebeDb<ZbColumnFamilies> zeebeDb) {
+  public MessageStartEventSubscriptionState(
+      ZeebeDb<ZbColumnFamilies> zeebeDb, DbContext dbContext) {
     this.zeebeDb = zeebeDb;
+    this.dbContext = dbContext;
 
     messageName = new DbString();
     workflowKey = new DbLong();
@@ -59,6 +63,7 @@ public class MessageStartEventSubscriptionState {
     subscriptionsColumnFamily =
         zeebeDb.createColumnFamily(
             ZbColumnFamilies.MESSAGE_START_EVENT_SUBSCRIPTION_BY_NAME_AND_KEY,
+            dbContext,
             messageNameAndWorkflowKey,
             subscriptionValue);
 
@@ -66,6 +71,7 @@ public class MessageStartEventSubscriptionState {
     subscriptionsOfWorkflowKeyColumnfamily =
         zeebeDb.createColumnFamily(
             ZbColumnFamilies.MESSAGE_START_EVENT_SUBSCRIPTION_BY_KEY_AND_NAME,
+            dbContext,
             workflowKeyAndMessageName,
             DbNil.INSTANCE);
   }
@@ -76,6 +82,7 @@ public class MessageStartEventSubscriptionState {
     subscriptionRecord.setWorkflowKey(subscription.getWorkflowKey());
 
     zeebeDb.transaction(
+        dbContext,
         () -> {
           messageName.wrapBuffer(subscription.getMessageName());
           workflowKey.wrapLong(subscription.getWorkflowKey());

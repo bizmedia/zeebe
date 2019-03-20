@@ -15,6 +15,7 @@
  */
 package io.zeebe.db.impl.rocksdb.transaction;
 
+import io.zeebe.db.DbContext;
 import io.zeebe.db.ZeebeDb;
 import io.zeebe.db.ZeebeDbException;
 import io.zeebe.db.ZeebeDbFactory;
@@ -38,11 +39,13 @@ public class ZeebeRocksDbTransactionTest {
       DefaultZeebeDbFactory.getDefaultFactory(DefaultColumnFamily.class);
 
   private ZeebeDb<DefaultColumnFamily> zeebeDb;
+  private DbContext dbContext;
 
   @Before
   public void setup() throws Exception {
     final File pathName = temporaryFolder.newFolder();
     zeebeDb = dbFactory.createDb(pathName);
+    dbContext = zeebeDb.createContext();
   }
 
   @Test(expected = ZeebeDbException.class)
@@ -52,6 +55,7 @@ public class ZeebeRocksDbTransactionTest {
 
     // when
     zeebeDb.transaction(
+        dbContext,
         () -> {
           throw new RocksDBException("expected", status);
         });
@@ -64,6 +68,7 @@ public class ZeebeRocksDbTransactionTest {
 
     // when
     zeebeDb.transaction(
+        dbContext,
         () -> {
           throw new RocksDBException("expected", status);
         });

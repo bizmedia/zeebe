@@ -20,6 +20,7 @@ package io.zeebe.broker.subscription.message.state;
 import io.zeebe.broker.logstreams.state.ZbColumnFamilies;
 import io.zeebe.broker.workflow.state.WorkflowInstanceSubscription;
 import io.zeebe.db.ColumnFamily;
+import io.zeebe.db.DbContext;
 import io.zeebe.db.ZeebeDb;
 import io.zeebe.db.impl.DbCompositeKey;
 import io.zeebe.db.impl.DbLong;
@@ -30,6 +31,7 @@ import org.agrona.DirectBuffer;
 public class WorkflowInstanceSubscriptionState {
 
   private final ZeebeDb<ZbColumnFamilies> zeebeDb;
+  private final DbContext dbContext;
 
   // (elementInstanceKey, messageName) => WorkflowInstanceSubscription
   private final DbLong elementInstanceKey;
@@ -45,7 +47,9 @@ public class WorkflowInstanceSubscriptionState {
   private final ColumnFamily<DbCompositeKey<DbLong, DbCompositeKey<DbLong, DbString>>, DbNil>
       sentTimeColumnFamily;
 
-  public WorkflowInstanceSubscriptionState(ZeebeDb<ZbColumnFamilies> zeebeDb) {
+  public WorkflowInstanceSubscriptionState(ZeebeDb<ZbColumnFamilies> zeebeDb, DbContext dbContext) {
+    this.dbContext = dbContext;
+
     elementInstanceKey = new DbLong();
     messageName = new DbString();
     elementKeyAndMessageName = new DbCompositeKey<>(elementInstanceKey, messageName);
@@ -54,6 +58,7 @@ public class WorkflowInstanceSubscriptionState {
     subscriptionColumnFamily =
         zeebeDb.createColumnFamily(
             ZbColumnFamilies.WORKFLOW_SUBSCRIPTION_BY_KEY,
+            dbContext,
             elementKeyAndMessageName,
             workflowInstanceSubscription);
 
@@ -62,6 +67,7 @@ public class WorkflowInstanceSubscriptionState {
     sentTimeColumnFamily =
         zeebeDb.createColumnFamily(
             ZbColumnFamilies.WORKFLOW_SUBSCRIPTION_BY_SENT_TIME,
+            dbContext,
             sentTimeCompositeKey,
             DbNil.INSTANCE);
 
@@ -70,6 +76,7 @@ public class WorkflowInstanceSubscriptionState {
 
   public void put(final WorkflowInstanceSubscription subscription) {
     zeebeDb.transaction(
+        dbContext,
         () -> {
           wrapSubscriptionKeys(subscription.getElementInstanceKey(), subscription.getMessageName());
 
@@ -131,6 +138,7 @@ public class WorkflowInstanceSubscriptionState {
 
   public void updateSentTime(final WorkflowInstanceSubscription subscription, long sentTime) {
     zeebeDb.transaction(
+        dbContext,
         () -> {
           wrapSubscriptionKeys(subscription.getElementInstanceKey(), subscription.getMessageName());
 
@@ -168,6 +176,7 @@ public class WorkflowInstanceSubscriptionState {
 
   public void remove(final WorkflowInstanceSubscription subscription) {
     zeebeDb.transaction(
+        dbContext,
         () -> {
           wrapSubscriptionKeys(subscription.getElementInstanceKey(), subscription.getMessageName());
 

@@ -19,6 +19,7 @@ package io.zeebe.broker.subscription.message.state;
 
 import io.zeebe.broker.logstreams.state.ZbColumnFamilies;
 import io.zeebe.db.ColumnFamily;
+import io.zeebe.db.DbContext;
 import io.zeebe.db.ZeebeDb;
 import io.zeebe.db.impl.DbCompositeKey;
 import io.zeebe.db.impl.DbLong;
@@ -29,6 +30,7 @@ import org.agrona.DirectBuffer;
 public class MessageSubscriptionState {
 
   private final ZeebeDb<ZbColumnFamilies> zeebeDb;
+  private final DbContext dbContext;
 
   // (elementInstanceKey, messageName) => MessageSubscription
   private final DbLong elementInstanceKey;
@@ -52,8 +54,9 @@ public class MessageSubscriptionState {
   private final ColumnFamily<DbCompositeKey<DbCompositeKey<DbString, DbString>, DbLong>, DbNil>
       messageNameAndCorrelationKeyColumnFamily;
 
-  public MessageSubscriptionState(ZeebeDb<ZbColumnFamilies> zeebeDb) {
+  public MessageSubscriptionState(ZeebeDb<ZbColumnFamilies> zeebeDb, DbContext dbContext) {
     this.zeebeDb = zeebeDb;
+    this.dbContext = dbContext;
 
     elementInstanceKey = new DbLong();
     messageName = new DbString();
@@ -62,6 +65,7 @@ public class MessageSubscriptionState {
     subscriptionColumnFamily =
         zeebeDb.createColumnFamily(
             ZbColumnFamilies.MESSAGE_SUBSCRIPTION_BY_KEY,
+            dbContext,
             elementKeyAndMessageName,
             messageSubscription);
 
@@ -70,6 +74,7 @@ public class MessageSubscriptionState {
     sentTimeColumnFamily =
         zeebeDb.createColumnFamily(
             ZbColumnFamilies.MESSAGE_SUBSCRIPTION_BY_SENT_TIME,
+            dbContext,
             sentTimeCompositeKey,
             DbNil.INSTANCE);
 
@@ -80,6 +85,7 @@ public class MessageSubscriptionState {
     messageNameAndCorrelationKeyColumnFamily =
         zeebeDb.createColumnFamily(
             ZbColumnFamilies.MESSAGE_SUBSCRIPTION_BY_NAME_AND_CORRELATION_KEY,
+            dbContext,
             nameCorrelationAndElementInstanceKey,
             DbNil.INSTANCE);
   }
@@ -92,6 +98,7 @@ public class MessageSubscriptionState {
 
   public void put(final MessageSubscription subscription) {
     zeebeDb.transaction(
+        dbContext,
         () -> {
           elementInstanceKey.wrapLong(subscription.getElementInstanceKey());
           messageName.wrapBuffer(subscription.getMessageName());
@@ -146,6 +153,7 @@ public class MessageSubscriptionState {
 
   public void updateSentTime(final MessageSubscription subscription, long sentTime) {
     zeebeDb.transaction(
+        dbContext,
         () -> {
           elementInstanceKey.wrapLong(subscription.getElementInstanceKey());
           messageName.wrapBuffer(subscription.getMessageName());
@@ -197,6 +205,7 @@ public class MessageSubscriptionState {
 
   public void remove(final MessageSubscription subscription) {
     zeebeDb.transaction(
+        dbContext,
         () -> {
           subscriptionColumnFamily.delete(elementKeyAndMessageName);
 

@@ -32,6 +32,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.zeebe.db.ColumnFamily;
+import io.zeebe.db.DbContext;
+import io.zeebe.db.TransactionRunnable;
 import io.zeebe.db.ZeebeDb;
 import io.zeebe.db.impl.DbString;
 import io.zeebe.db.impl.DefaultColumnFamily;
@@ -147,7 +149,7 @@ public class StreamProcessorControllerTest {
 
     doThrow(new RecoverableException("expected", new RuntimeException("expected")))
         .when(zeebeDb)
-        .transaction(any());
+        .transaction(any(DbContext.class), any(TransactionRunnable.class));
 
     // when
     writer.writeEvent(EVENT_1, true);
@@ -637,7 +639,7 @@ public class StreamProcessorControllerTest {
             .actorScheduler(logStreamRule.getActorScheduler())
             .serviceContainer(logStreamRule.getServiceContainer())
             .snapshotController(snapshotController)
-            .streamProcessorFactory((zeebeDb -> streamProcessor))
+            .streamProcessorFactory(((zeebeDb, dbContext) -> streamProcessor))
             .readOnly(true)
             .build()
             .join()
@@ -715,10 +717,11 @@ public class StreamProcessorControllerTest {
             .serviceContainer(logStreamRule.getServiceContainer())
             .snapshotController(snapshotController)
             .streamProcessorFactory(
-                (db) -> {
+                (db, dbContext) -> {
                   streamProcessor = RecordingStreamProcessor.createSpy(db);
                   eventProcessor = streamProcessor.getEventProcessorSpy();
-                  columnFamily = db.createColumnFamily(DefaultColumnFamily.DEFAULT, key, value);
+                  columnFamily =
+                      db.createColumnFamily(DefaultColumnFamily.DEFAULT, dbContext, key, value);
                   return streamProcessor;
                 })
             .snapshotPeriod(SNAPSHOT_INTERVAL)

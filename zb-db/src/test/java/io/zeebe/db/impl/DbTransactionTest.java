@@ -18,6 +18,7 @@ package io.zeebe.db.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.zeebe.db.ColumnFamily;
+import io.zeebe.db.DbContext;
 import io.zeebe.db.ZeebeDb;
 import io.zeebe.db.ZeebeDbFactory;
 import java.io.File;
@@ -37,6 +38,7 @@ public class DbTransactionTest {
       DefaultZeebeDbFactory.getDefaultFactory(ColumnFamilies.class);
 
   private ZeebeDb<ColumnFamilies> zeebeDb;
+  private DbContext dbContext;
 
   private ColumnFamily<DbLong, DbLong> oneColumnFamily;
   private ColumnFamily<DbLong, DbLong> twoColumnFamily;
@@ -60,18 +62,20 @@ public class DbTransactionTest {
   public void setup() throws Exception {
     final File pathName = temporaryFolder.newFolder();
     zeebeDb = dbFactory.createDb(pathName);
+    dbContext = zeebeDb.createContext();
 
     oneKey = new DbLong();
     oneValue = new DbLong();
-    oneColumnFamily = zeebeDb.createColumnFamily(ColumnFamilies.ONE, oneKey, oneValue);
+    oneColumnFamily = zeebeDb.createColumnFamily(ColumnFamilies.ONE, dbContext, oneKey, oneValue);
 
     twoKey = new DbLong();
     twoValue = new DbLong();
-    twoColumnFamily = zeebeDb.createColumnFamily(ColumnFamilies.TWO, twoKey, twoValue);
+    twoColumnFamily = zeebeDb.createColumnFamily(ColumnFamilies.TWO, dbContext, twoKey, twoValue);
 
     threeKey = new DbLong();
     threeValue = new DbLong();
-    threeColumnFamily = zeebeDb.createColumnFamily(ColumnFamilies.THREE, threeKey, threeValue);
+    threeColumnFamily =
+        zeebeDb.createColumnFamily(ColumnFamilies.THREE, dbContext, threeKey, threeValue);
   }
 
   @Test
@@ -88,6 +92,7 @@ public class DbTransactionTest {
 
     // when
     zeebeDb.transaction(
+        dbContext,
         () -> {
           oneColumnFamily.put(oneKey, oneValue);
           twoColumnFamily.put(twoKey, twoValue);
@@ -109,6 +114,7 @@ public class DbTransactionTest {
 
     // when
     zeebeDb.transaction(
+        dbContext,
         () -> {
           oneColumnFamily.put(oneKey, oneValue);
           final DbLong value = oneColumnFamily.get(oneKey);
@@ -130,6 +136,7 @@ public class DbTransactionTest {
 
     // when
     zeebeDb.transaction(
+        dbContext,
         () -> {
           // update value
           oneKey.wrapLong(1);
@@ -168,6 +175,7 @@ public class DbTransactionTest {
 
     // when
     zeebeDb.transaction(
+        dbContext,
         () -> {
           // update old value
           oneKey.wrapLong(2);
@@ -202,7 +210,8 @@ public class DbTransactionTest {
     oneColumnFamily.put(oneKey, oneValue);
 
     // when
-    zeebeDb.transaction(() -> oneColumnFamily.forEach((k, v) -> oneColumnFamily.delete(k)));
+    zeebeDb.transaction(
+        dbContext, () -> oneColumnFamily.forEach((k, v) -> oneColumnFamily.delete(k)));
 
     // then
     assertThat(oneColumnFamily.exists(oneKey)).isFalse();
@@ -223,8 +232,9 @@ public class DbTransactionTest {
     // when
     oneColumnFamily.put(oneKey, oneValue);
     zeebeDb.transaction(
+        dbContext,
         () -> {
-          zeebeDb.transaction(() -> oneColumnFamily.put(oneKey, twoValue));
+          zeebeDb.transaction(dbContext, () -> oneColumnFamily.put(oneKey, twoValue));
           final DbLong value = oneColumnFamily.get(oneKey);
           actualValue.set(value.getValue());
         });
@@ -250,6 +260,7 @@ public class DbTransactionTest {
 
     // when
     zeebeDb.transaction(
+        dbContext,
         () -> {
           // create
           oneColumnFamily.put(oneKey, oneValue);
@@ -280,6 +291,7 @@ public class DbTransactionTest {
 
     // when
     zeebeDb.transaction(
+        dbContext,
         () -> {
           // create
           oneColumnFamily.put(oneKey, oneValue);
@@ -309,6 +321,7 @@ public class DbTransactionTest {
     assertThat(twoColumnFamily.exists(twoKey)).isTrue();
     try {
       zeebeDb.transaction(
+          dbContext,
           () -> {
             oneColumnFamily.put(oneKey, oneValue);
             twoColumnFamily.delete(twoKey);

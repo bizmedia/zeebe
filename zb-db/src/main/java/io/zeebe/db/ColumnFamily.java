@@ -35,6 +35,8 @@ public interface ColumnFamily<KeyType extends DbKey, ValueType extends DbValue> 
    */
   void put(KeyType key, ValueType value);
 
+  void put(DbContext context, KeyType key, ValueType value);
+
   /**
    * The corresponding stored value in the column family to the given key.
    *
@@ -42,6 +44,8 @@ public interface ColumnFamily<KeyType extends DbKey, ValueType extends DbValue> 
    * @return if the key was found in the column family then the value, otherwise null
    */
   ValueType get(KeyType key);
+
+  ValueType get(DbContext context, KeyType key);
 
   /**
    * Visits the values, which are stored in the column family. The ordering depends on the key.
@@ -54,6 +58,8 @@ public interface ColumnFamily<KeyType extends DbKey, ValueType extends DbValue> 
    */
   void forEach(Consumer<ValueType> consumer);
 
+  void forEach(DbContext context, Consumer<ValueType> consumer);
+
   /**
    * Visits the key-value pairs, which are stored in the column family. The ordering depends on the
    * key.
@@ -65,6 +71,7 @@ public interface ColumnFamily<KeyType extends DbKey, ValueType extends DbValue> 
   void forEach(BiConsumer<KeyType, ValueType> consumer);
 
   /** @param visitor */
+  void forEach(DbContext context, BiConsumer<KeyType, ValueType> consumer);
 
   /**
    * Visits the key-value pairs, which are stored in the column family. The ordering depends on the
@@ -77,6 +84,8 @@ public interface ColumnFamily<KeyType extends DbKey, ValueType extends DbValue> 
    */
   void whileTrue(KeyValuePairVisitor<KeyType, ValueType> visitor);
 
+  void whileTrue(DbContext context, KeyValuePairVisitor<KeyType, ValueType> visitor);
+
   /**
    * Visits the key-value pairs, which are stored in the column family and which have the same
    * common prefix. The ordering depends on the key.
@@ -87,6 +96,8 @@ public interface ColumnFamily<KeyType extends DbKey, ValueType extends DbValue> 
    * @param visitor the visitor which visits the key-value pairs
    */
   void whileEqualPrefix(DbKey keyPrefix, BiConsumer<KeyType, ValueType> visitor);
+
+  void whileEqualPrefix(DbContext context, DbKey keyPrefix, BiConsumer<KeyType, ValueType> visitor);
 
   /**
    * Visits the key-value pairs, which are stored in the column family and which have the same
@@ -102,12 +113,17 @@ public interface ColumnFamily<KeyType extends DbKey, ValueType extends DbValue> 
    */
   void whileEqualPrefix(DbKey keyPrefix, KeyValuePairVisitor<KeyType, ValueType> visitor);
 
+  void whileEqualPrefix(
+      DbContext context, DbKey keyPrefix, KeyValuePairVisitor<KeyType, ValueType> visitor);
+
   /**
    * Deletes the key-value pair with the given key from the column family.
    *
    * @param key the key which identifies the pair
    */
   void delete(KeyType key);
+
+  void delete(DbContext context, KeyType key);
 
   /**
    * Checks for key existence in the column family.
@@ -117,10 +133,14 @@ public interface ColumnFamily<KeyType extends DbKey, ValueType extends DbValue> 
    */
   boolean exists(KeyType key);
 
+  boolean exists(DbContext context, KeyType key);
+
   /**
    * Checks if the column family has any entry.
    *
    * @return <code>true</code> if the column family has no entry
    */
   boolean isEmpty();
+
+  boolean isEmpty(DbContext context);
 }

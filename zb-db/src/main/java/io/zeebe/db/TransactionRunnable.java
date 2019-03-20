@@ -15,10 +15,8 @@
  */
 package io.zeebe.db;
 
-import io.zeebe.db.impl.rocksdb.transaction.ZeebeTransaction;
-
 /** One or multiple operations which are executed during an open transaction. */
 @FunctionalInterface
-public interface TransactionOperation {
-  void run(ZeebeTransaction transaction) throws Exception;
+public interface TransactionRunnable {
+  void run() throws Exception;
 }
