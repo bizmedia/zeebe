@@ -21,13 +21,11 @@ import io.zeebe.broker.logstreams.processor.SideEffectProducer;
 import io.zeebe.broker.logstreams.processor.TypedRecord;
 import io.zeebe.broker.logstreams.processor.TypedRecordProcessor;
 import io.zeebe.broker.logstreams.processor.TypedResponseWriter;
-import io.zeebe.broker.logstreams.processor.TypedStreamProcessor;
 import io.zeebe.broker.logstreams.processor.TypedStreamWriter;
 import io.zeebe.broker.logstreams.state.ZeebeState;
 import io.zeebe.broker.workflow.model.element.ExecutableFlowElement;
 import io.zeebe.broker.workflow.model.element.ExecutableWorkflow;
 import io.zeebe.broker.workflow.state.DeployedWorkflow;
-import io.zeebe.broker.workflow.state.ElementInstanceState;
 import io.zeebe.broker.workflow.state.WorkflowEngineState;
 import io.zeebe.broker.workflow.state.WorkflowState;
 import io.zeebe.protocol.impl.record.value.workflowinstance.WorkflowInstanceRecord;
@@ -42,8 +40,6 @@ public class BpmnStepProcessor implements TypedRecordProcessor<WorkflowInstanceR
   private final WorkflowState workflowState;
   private final BpmnStepContext context;
 
-  private ElementInstanceState elementInstanceState;
-
   public BpmnStepProcessor(
       WorkflowEngineState state, ZeebeState zeebeState, CatchEventBehavior catchEventBehavior) {
     this.state = state;
@@ -52,11 +48,6 @@ public class BpmnStepProcessor implements TypedRecordProcessor<WorkflowInstanceR
 
     final EventOutput eventOutput = new EventOutput(state);
     this.context = new BpmnStepContext<>(workflowState, eventOutput, catchEventBehavior);
-  }
-
-  @Override
-  public void onOpen(TypedStreamProcessor streamProcessor) {
-    this.elementInstanceState = workflowState.getElementInstanceState();
   }
 
   @Override
@@ -70,16 +61,17 @@ public class BpmnStepProcessor implements TypedRecordProcessor<WorkflowInstanceR
       TypedResponseWriter responseWriter,
       TypedStreamWriter streamWriter,
       Consumer<SideEffectProducer> sideEffect) {
-
     populateEventContext(record, streamWriter, sideEffect);
     stepHandlers.handle(context);
-    elementInstanceState.flushDirtyState();
   }
 
   private void populateEventContext(
       TypedRecord<WorkflowInstanceRecord> record,
       TypedStreamWriter streamWriter,
       Consumer<SideEffectProducer> sideEffect) {
+    // reset element instances
+    context.setElementInstance(null);
+    context.setFlowScopeInstance(null);
 
     context.setRecord(record);
     context.setStreamWriter(streamWriter);

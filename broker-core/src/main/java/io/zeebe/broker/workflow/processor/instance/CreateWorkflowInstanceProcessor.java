@@ -90,8 +90,7 @@ public class CreateWorkflowInstanceProcessor
       return;
     }
 
-    final ElementInstance workflowInstance =
-        createElementInstance(workflow, workflowInstanceKey, record.getVariables());
+    final ElementInstance workflowInstance = createElementInstance(workflow, workflowInstanceKey);
     streamWriter.appendFollowUpEvent(
         workflowInstanceKey,
         WorkflowInstanceIntent.ELEMENT_ACTIVATING,
@@ -134,7 +133,7 @@ public class CreateWorkflowInstanceProcessor
   }
 
   private ElementInstance createElementInstance(
-      DeployedWorkflow workflow, long workflowInstanceKey, DirectBuffer variables) {
+      DeployedWorkflow workflow, long workflowInstanceKey) {
     newWorkflowInstance.reset();
     newWorkflowInstance.setBpmnProcessId(workflow.getBpmnProcessId());
     newWorkflowInstance.setVersion(workflow.getVersion());
@@ -147,7 +146,6 @@ public class CreateWorkflowInstanceProcessor
     final ElementInstance instance =
         elementInstanceState.newInstance(
             workflowInstanceKey, newWorkflowInstance, WorkflowInstanceIntent.ELEMENT_ACTIVATING);
-    elementInstanceState.flushDirtyState();
 
     return instance;
   }

@@ -101,9 +101,12 @@ public class BpmnStepContext<T extends ExecutableFlowElement> {
   }
 
   public ElementInstance getFlowScopeInstance() {
-    final WorkflowInstanceRecord value = getRecord().getValue();
-
-    return stateDb.getElementInstanceState().getInstance(value.getFlowScopeKey());
+    if (flowScopeInstance == null) {
+      final WorkflowInstanceRecord value = getValue();
+      final ElementInstanceState elementInstanceState = stateDb.getElementInstanceState();
+      flowScopeInstance = elementInstanceState.getInstance(value.getFlowScopeKey());
+    }
+    return flowScopeInstance;
   }
 
   public void setFlowScopeInstance(final ElementInstance flowScopeInstance) {
@@ -116,7 +119,11 @@ public class BpmnStepContext<T extends ExecutableFlowElement> {
    * @return
    */
   public ElementInstance getElementInstance() {
-    return stateDb.getElementInstanceState().getInstance(getRecord().getKey());
+    if (elementInstance == null) {
+      final ElementInstanceState elementInstanceState = stateDb.getElementInstanceState();
+      elementInstance = elementInstanceState.getInstance(getRecord().getKey());
+    }
+    return elementInstance;
   }
 
   public void setElementInstance(final ElementInstance elementInstance) {
