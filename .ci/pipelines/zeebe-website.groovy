@@ -14,6 +14,10 @@ metadata:
 spec:
   nodeSelector:
     cloud.google.com/gke-nodepool: slaves
+  tolerations:
+    - key: "slaves"
+      operator: "Exists"
+      effect: "NoSchedule"
   containers:
     - name: maven
       image: maven:3.6.0-jdk-8
