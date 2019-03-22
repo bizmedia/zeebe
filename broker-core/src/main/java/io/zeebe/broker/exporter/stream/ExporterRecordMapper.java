@@ -19,6 +19,7 @@ package io.zeebe.broker.exporter.stream;
 
 import io.zeebe.broker.exporter.ExporterObjectMapper;
 import io.zeebe.broker.exporter.record.RecordImpl;
+import io.zeebe.broker.exporter.record.value.ErrorRecordValueImpl;
 import io.zeebe.broker.exporter.record.value.IncidentRecordValueImpl;
 import io.zeebe.broker.exporter.record.value.JobBatchRecordValueImpl;
 import io.zeebe.broker.exporter.record.value.JobRecordValueImpl;
@@ -42,6 +43,7 @@ import io.zeebe.exporter.record.Record;
 import io.zeebe.exporter.record.RecordMetadata;
 import io.zeebe.exporter.record.RecordValue;
 import io.zeebe.exporter.record.value.DeploymentRecordValue;
+import io.zeebe.exporter.record.value.ErrorRecordValue;
 import io.zeebe.exporter.record.value.IncidentRecordValue;
 import io.zeebe.exporter.record.value.JobRecordValue;
 import io.zeebe.exporter.record.value.MessageRecordValue;
@@ -61,6 +63,7 @@ import io.zeebe.msgpack.value.LongValue;
 import io.zeebe.protocol.Protocol;
 import io.zeebe.protocol.impl.record.value.deployment.DeploymentRecord;
 import io.zeebe.protocol.impl.record.value.deployment.Workflow;
+import io.zeebe.protocol.impl.record.value.error.ErrorRecord;
 import io.zeebe.protocol.impl.record.value.incident.IncidentRecord;
 import io.zeebe.protocol.impl.record.value.job.JobBatchRecord;
 import io.zeebe.protocol.impl.record.value.job.JobHeaders;
@@ -138,6 +141,9 @@ public class ExporterRecordMapper {
         break;
       case WORKFLOW_INSTANCE_CREATION:
         valueSupplier = this::ofWorkflowInstanceCreationRecord;
+        break;
+      case ERROR:
+        valueSupplier = this::ofErrorRecord;
         break;
       default:
         return null;
@@ -395,6 +401,22 @@ public class ExporterRecordMapper {
         record.getKey(),
         record.getInstanceKey(),
         asMsgPackMap(record.getVariables()));
+  }
+
+  private ErrorRecordValue ofErrorRecord(LoggedEvent loggedEvent) {
+    final ErrorRecord record = new ErrorRecord();
+    loggedEvent.readValue(record);
+
+    return new ErrorRecordValueImpl(
+        objectMapper,
+        asString(record.getExceptionMessage()),
+        asString(record.getStacktrace()),
+        record.getErrorEventPosition(),
+        asString(record.getBpmnProcessId()),
+        record.getWorkflowInstanceKey(),
+        record.getWorkflowKey(),
+        asString(record.getElementId()),
+        record.getElementInstanceKey());
   }
 
   private byte[] asByteArray(final DirectBuffer buffer) {
