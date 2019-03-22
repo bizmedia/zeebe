@@ -46,7 +46,6 @@ public class WorkflowInstanceCommandProcessor
       TypedStreamWriter streamWriter) {
     populateCommandContext(record, responseWriter, streamWriter);
     commandHandlers.handle(context);
-    state.getElementInstanceState().updateInstance(context.getElementInstance());
   }
 
   private void populateCommandContext(

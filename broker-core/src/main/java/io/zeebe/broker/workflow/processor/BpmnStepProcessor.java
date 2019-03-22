@@ -69,9 +69,6 @@ public class BpmnStepProcessor implements TypedRecordProcessor<WorkflowInstanceR
       TypedRecord<WorkflowInstanceRecord> record,
       TypedStreamWriter streamWriter,
       Consumer<SideEffectProducer> sideEffect) {
-    // reset element instances
-    context.setElementInstance(null);
-    context.setFlowScopeInstance(null);
 
     context.setRecord(record);
     context.setStreamWriter(streamWriter);

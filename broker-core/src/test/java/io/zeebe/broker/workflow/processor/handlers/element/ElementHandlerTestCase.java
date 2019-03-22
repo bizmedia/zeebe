@@ -83,13 +83,11 @@ public abstract class ElementHandlerTestCase {
       WorkflowInstanceIntent state, ElementInstance flowScope) {
     final ElementInstance instance = newElementInstance(state, flowScope);
     setContextElementInstance(instance);
-    context.setFlowScopeInstance(flowScope);
 
     return instance;
   }
 
   protected void setContextElementInstance(ElementInstance instance) {
-    context.setElementInstance(instance);
     context.setRecord(newRecordFor(instance));
   }
 

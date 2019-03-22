@@ -47,18 +47,6 @@ public class ElementTerminatedHandlerTest extends ElementHandlerTestCase {
   @Test
   public void shouldNotHandleStateIfNoElementGiven() {
     // given
-    context.setElementInstance(null);
-
-    // when - then
-    assertThat(handler.shouldHandleState(context)).isFalse();
-  }
-
-  @Test
-  public void shouldNotHandleStateIfInMemoryStateIsDifferent() {
-    // given
-    final ElementInstance instance =
-        createAndSetContextElementInstance(WorkflowInstanceIntent.ELEMENT_TERMINATED);
-    instance.setState(WorkflowInstanceIntent.ELEMENT_COMPLETING);
 
     // when - then
     assertThat(handler.shouldHandleState(context)).isFalse();

@@ -36,7 +36,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.StrictStubs.class)
 public class ElementTerminatingHandlerTest extends ElementHandlerTestCase {
   private ElementTerminatingHandler<ExecutableFlowNode> handler;
-  private IncidentState incidentState = zeebeStateRule.getZeebeState().getIncidentState();
+  private final IncidentState incidentState = zeebeStateRule.getZeebeState().getIncidentState();
 
   @Override
   @Before
@@ -48,18 +48,6 @@ public class ElementTerminatingHandlerTest extends ElementHandlerTestCase {
   @Test
   public void shouldNotHandleStateIfNoElementGiven() {
     // given
-    context.setElementInstance(null);
-
-    // when - then
-    assertThat(handler.shouldHandleState(context)).isFalse();
-  }
-
-  @Test
-  public void shouldNotHandleStateIfInMemoryStateIsDifferent() {
-    // given
-    final ElementInstance instance =
-        createAndSetContextElementInstance(WorkflowInstanceIntent.ELEMENT_TERMINATING);
-    instance.setState(WorkflowInstanceIntent.ELEMENT_COMPLETING);
 
     // when - then
     assertThat(handler.shouldHandleState(context)).isFalse();

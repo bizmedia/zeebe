@@ -44,9 +44,6 @@ public class BpmnStepContext<T extends ExecutableFlowElement> {
   private ExecutableFlowElement element;
   private TypedCommandWriter commandWriter;
 
-  private ElementInstance flowScopeInstance;
-  private ElementInstance elementInstance;
-
   public BpmnStepContext(
       WorkflowState stateDb, EventOutput eventOutput, CatchEventBehavior catchEventBehavior) {
     this.stateDb = stateDb;
@@ -101,16 +98,8 @@ public class BpmnStepContext<T extends ExecutableFlowElement> {
   }
 
   public ElementInstance getFlowScopeInstance() {
-    if (flowScopeInstance == null) {
-      final WorkflowInstanceRecord value = getValue();
-      final ElementInstanceState elementInstanceState = stateDb.getElementInstanceState();
-      flowScopeInstance = elementInstanceState.getInstance(value.getFlowScopeKey());
-    }
-    return flowScopeInstance;
-  }
-
-  public void setFlowScopeInstance(final ElementInstance flowScopeInstance) {
-    this.flowScopeInstance = flowScopeInstance;
+    final WorkflowInstanceRecord value = getValue();
+    return stateDb.getElementInstanceState().getInstance(value.getFlowScopeKey());
   }
 
   /**
@@ -119,15 +108,12 @@ public class BpmnStepContext<T extends ExecutableFlowElement> {
    * @return
    */
   public ElementInstance getElementInstance() {
-    if (elementInstance == null) {
-      final ElementInstanceState elementInstanceState = stateDb.getElementInstanceState();
-      elementInstance = elementInstanceState.getInstance(getRecord().getKey());
+    final TypedRecord<WorkflowInstanceRecord> record = getRecord();
+    if (record != null) {
+      final long key = record.getKey();
+      return stateDb.getElementInstanceState().getInstance(key);
     }
-    return elementInstance;
-  }
-
-  public void setElementInstance(final ElementInstance elementInstance) {
-    this.elementInstance = elementInstance;
+    return null;
   }
 
   public SideEffectQueue getSideEffect() {
