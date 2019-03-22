@@ -91,8 +91,12 @@ public final class ProcessingStateMachine {
   private static final String ERROR_MESSAGE_PROCESSING_FAILED_RETRY_PROCESSING =
       "Expected to process event '{}' successfully on stream processor '{}', but caught recoverable exception. Retry processing.";
 
+  private static final String LOG_ERROR_EVENT_COMMITTED =
+      "Error event was committed, we continue with processing.";
+  private static final String LOG_ERROR_EVENT_WRITTEN =
+      "Error record was written at {}, we will continue with processing if event was committed. Current commit position is {}.";
+
   private static final Duration PROCESSING_RETRY_DELAY = Duration.ofMillis(250);
-  private final LogStream logStream;
 
   public static ProcessingStateMachineBuilder builder() {
     return new ProcessingStateMachineBuilder();
@@ -104,6 +108,7 @@ public final class ProcessingStateMachine {
   private final StreamProcessorMetrics metrics;
   private final StreamProcessor streamProcessor;
   private final EventFilter eventFilter;
+  private final LogStream logStream;
   private final LogStreamReader logStreamReader;
   private final LogStreamRecordWriter logStreamWriter;
 
@@ -162,6 +167,12 @@ public final class ProcessingStateMachine {
         && logStreamReader.hasNext()
         && eventProcessor == null
         && logStream.getCommitPosition() >= errorRecordPosition) {
+
+      if (onErrorHandling) {
+        LOG.info(LOG_ERROR_EVENT_COMMITTED);
+        onErrorHandling = false;
+      }
+
       currentEvent = logStreamReader.next();
 
       if (eventFilter == null || eventFilter.applies(currentEvent)) {
@@ -275,7 +286,7 @@ public final class ProcessingStateMachine {
 
             if (onErrorHandling) {
               errorRecordPosition = eventPosition;
-              onErrorHandling = false;
+              LOG.info(LOG_ERROR_EVENT_WRITTEN, errorRecordPosition, logStream.getCommitPosition());
             }
             lastSuccessfulProcessedEventPosition = currentEvent.getPosition();
             lastWrittenEventPosition = eventPosition;
