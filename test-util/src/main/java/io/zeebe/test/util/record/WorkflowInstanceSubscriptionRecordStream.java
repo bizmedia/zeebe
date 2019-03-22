@@ -20,7 +20,7 @@ import io.zeebe.exporter.record.value.WorkflowInstanceSubscriptionRecordValue;
 import java.util.stream.Stream;
 
 public class WorkflowInstanceSubscriptionRecordStream
-    extends ExporterRecordWithPayloadStream<
+    extends ExporterRecordWithVariablesStream<
         WorkflowInstanceSubscriptionRecordValue, WorkflowInstanceSubscriptionRecordStream> {
 
   public WorkflowInstanceSubscriptionRecordStream(

@@ -170,7 +170,7 @@ public class EventScopeInstanceState {
    * Returns the next event trigger for the event scope or null if none exists. This will not remove
    * the event trigger from the state.
    *
-   * @param eventScopeKey the key of the event scope
+   * @param eventScopeKey the key of the event scopen
    * @return the next event trigger or null if none exist
    */
   public EventTrigger peekEventTrigger(long eventScopeKey) {

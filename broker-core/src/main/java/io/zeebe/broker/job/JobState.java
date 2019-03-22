@@ -88,13 +88,13 @@ public class JobState {
   }
 
   private void createJob(long key, JobRecord record, DirectBuffer type) {
-    resetPayloadAndUpdateJobRecord(key, record);
+    resetVariablesAndUpdateJobRecord(key, record);
     updateJobState(State.ACTIVATABLE);
     makeJobActivatable(type);
   }
 
   /**
-   * <b>Note:</b> calling this method will reset the payload of the job record. Make sure to write
+   * <b>Note:</b> calling this method will reset the variables of the job record. Make sure to write
    * the job record to the log before updating it in the state.
    *
    * <p>related to https://github.com/zeebe-io/zeebe/issues/2182
@@ -107,7 +107,7 @@ public class JobState {
 
     zeebeDb.transaction(
         () -> {
-          resetPayloadAndUpdateJobRecord(key, record);
+          resetVariablesAndUpdateJobRecord(key, record);
 
           updateJobState(State.ACTIVATED);
 
@@ -156,7 +156,7 @@ public class JobState {
 
     zeebeDb.transaction(
         () -> {
-          resetPayloadAndUpdateJobRecord(key, updatedValue);
+          resetVariablesAndUpdateJobRecord(key, updatedValue);
 
           final State newState = updatedValue.getRetries() > 0 ? State.ACTIVATABLE : State.FAILED;
           updateJobState(newState);
@@ -179,7 +179,7 @@ public class JobState {
 
     zeebeDb.transaction(
         () -> {
-          resetPayloadAndUpdateJobRecord(key, updatedValue);
+          resetVariablesAndUpdateJobRecord(key, updatedValue);
           updateJobState(State.ACTIVATABLE);
           makeJobActivatable(type);
         });
@@ -246,7 +246,7 @@ public class JobState {
     final JobRecord job = getJob(jobKey);
     if (job != null) {
       job.setRetries(retries);
-      resetPayloadAndUpdateJobRecord(jobKey, job);
+      resetVariablesAndUpdateJobRecord(jobKey, job);
     }
     return job;
   }
@@ -283,9 +283,9 @@ public class JobState {
     }
   }
 
-  private void resetPayloadAndUpdateJobRecord(long key, JobRecord updatedValue) {
+  private void resetVariablesAndUpdateJobRecord(long key, JobRecord updatedValue) {
     jobKey.wrapLong(key);
-    // do not persist payload in job state
+    // do not persist variables in job state
     updatedValue.resetVariables();
     jobRecordToWrite.wrapObject(updatedValue);
     jobsColumnFamily.put(jobKey, jobRecordToWrite);

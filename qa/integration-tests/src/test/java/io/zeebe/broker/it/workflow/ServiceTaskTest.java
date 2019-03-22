@@ -184,7 +184,7 @@ public class ServiceTaskTest {
   }
 
   @Test
-  public void shouldMapPayloadIntoTask() {
+  public void shouldMapVariablesIntoTask() {
     // given
     final BpmnModelInstance modelInstance =
         Bpmn.createExecutableProcess("process")
@@ -216,7 +216,7 @@ public class ServiceTaskTest {
   }
 
   @Test
-  public void shouldMapPayloadFromTask() {
+  public void shouldMapVariablesFromTask() {
     // given
     final BpmnModelInstance modelInstance =
         Bpmn.createExecutableProcess("process")
@@ -256,7 +256,7 @@ public class ServiceTaskTest {
   }
 
   @Test
-  public void shouldModifyPayloadInTask() {
+  public void shouldModifyVariablesInTask() {
     // given
     final BpmnModelInstance modelInstance =
         Bpmn.createExecutableProcess("process")
@@ -285,8 +285,8 @@ public class ServiceTaskTest {
         .jobType("foo")
         .handler(
             (client, job) -> {
-              final String modifiedPayload = job.getVariables().replaceAll("1", "2");
-              client.newCompleteCommand(job.getKey()).variables(modifiedPayload).send();
+              final String modifiedVariables = job.getVariables().replaceAll("1", "2");
+              client.newCompleteCommand(job.getKey()).variables(modifiedVariables).send();
             })
         .open();
 
@@ -301,7 +301,7 @@ public class ServiceTaskTest {
   }
 
   @Test
-  public void shouldCompleteTasksAndMergePayload() throws Exception {
+  public void shouldCompleteTasksAndMergeVariables() throws Exception {
 
     // given
     clientRule

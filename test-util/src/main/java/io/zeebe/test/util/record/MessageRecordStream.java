@@ -20,7 +20,7 @@ import io.zeebe.exporter.record.value.MessageRecordValue;
 import java.util.stream.Stream;
 
 public class MessageRecordStream
-    extends ExporterRecordWithPayloadStream<MessageRecordValue, MessageRecordStream> {
+    extends ExporterRecordWithVariablesStream<MessageRecordValue, MessageRecordStream> {
 
   public MessageRecordStream(final Stream<Record<MessageRecordValue>> wrappedStream) {
     super(wrappedStream);

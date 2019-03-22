@@ -25,7 +25,7 @@ import io.zeebe.exporter.record.Record;
 import io.zeebe.exporter.record.value.VariableRecordValue;
 import io.zeebe.model.bpmn.Bpmn;
 import io.zeebe.model.bpmn.builder.IntermediateCatchEventBuilder;
-import io.zeebe.model.bpmn.builder.ZeebePayloadMappingBuilder;
+import io.zeebe.model.bpmn.builder.ZeebeVariablesMappingBuilder;
 import io.zeebe.protocol.intent.VariableIntent;
 import io.zeebe.protocol.intent.WorkflowInstanceIntent;
 import io.zeebe.test.broker.protocol.clientapi.ClientApiRule;
@@ -215,8 +215,8 @@ public class MessageOutputMappingTest {
         .containsAll(expectedScopeVariables);
   }
 
-  private static Consumer<ZeebePayloadMappingBuilder<IntermediateCatchEventBuilder>> mapping(
-      Consumer<ZeebePayloadMappingBuilder<IntermediateCatchEventBuilder>> mappingBuilder) {
+  private static Consumer<ZeebeVariablesMappingBuilder<IntermediateCatchEventBuilder>> mapping(
+      Consumer<ZeebeVariablesMappingBuilder<IntermediateCatchEventBuilder>> mappingBuilder) {
     return mappingBuilder;
   }
 

@@ -126,7 +126,7 @@ public class YamlWorkflowTest {
   }
 
   @Test
-  public void shouldCompleteTaskWithPayload() {
+  public void shouldCompleteTaskWithVariables() {
     // given
     final ZeebeClient zeebeClient = clientRule.getClient();
     final String resource = "workflows/workflow-with-mappings.yaml";

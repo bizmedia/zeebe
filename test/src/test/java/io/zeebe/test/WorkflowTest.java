@@ -58,7 +58,7 @@ public class WorkflowTest {
   }
 
   @Test
-  public void shouldCompleteWorkflowInstanceWithPayload() {
+  public void shouldCompleteWorkflowInstanceWithVariables() {
     final WorkflowInstanceEvent workflowInstance =
         client.newCreateInstanceCommand().bpmnProcessId("process").latestVersion().send().join();
 

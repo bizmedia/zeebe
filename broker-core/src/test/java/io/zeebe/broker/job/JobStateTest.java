@@ -107,7 +107,7 @@ public class JobStateTest {
   }
 
   @Test
-  public void shouldNeverPersistJobPayload() {
+  public void shouldNeverPersistJobVariables() {
     // given
     final long key = 1L;
     final JobRecord jobRecord = newJobRecord();
@@ -120,12 +120,12 @@ public class JobStateTest {
             jobState::activate,
             jobState::fail);
 
-    // when job state is updated then the payload is not persisted
+    // when job state is updated then the variables is not persisted
     for (BiConsumer<Long, JobRecord> stateUpdate : stateUpdates) {
       jobRecord.setVariables(MsgPackUtil.asMsgPack("foo", "bar"));
       stateUpdate.accept(key, jobRecord);
-      final DirectBuffer payload = jobState.getJob(key).getVariables();
-      BufferAssert.assertThatBuffer(payload).isEqualTo(DocumentValue.EMPTY_DOCUMENT);
+      final DirectBuffer variables = jobState.getJob(key).getVariables();
+      BufferAssert.assertThatBuffer(variables).isEqualTo(DocumentValue.EMPTY_DOCUMENT);
     }
   }
 

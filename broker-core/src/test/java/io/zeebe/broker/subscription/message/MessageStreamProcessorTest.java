@@ -343,16 +343,17 @@ public class MessageStreamProcessorTest {
   private void assertAllMessagesReceived(
       MessageSubscriptionRecord subscription, MessageRecord first, MessageRecord second) {
     final ArgumentCaptor<DirectBuffer> nameCaptor = ArgumentCaptor.forClass(DirectBuffer.class);
-    final ArgumentCaptor<DirectBuffer> payloadCaptor = ArgumentCaptor.forClass(DirectBuffer.class);
+    final ArgumentCaptor<DirectBuffer> variablesCaptor =
+        ArgumentCaptor.forClass(DirectBuffer.class);
     verify(mockSubscriptionCommandSender, timeout(5_000).times(2))
         .correlateWorkflowInstanceSubscription(
             eq(subscription.getWorkflowInstanceKey()),
             eq(subscription.getElementInstanceKey()),
             nameCaptor.capture(),
-            payloadCaptor.capture());
+            variablesCaptor.capture());
     assertThat(nameCaptor.getValue()).isEqualTo(subscription.getMessageName());
-    assertThat(payloadCaptor.getAllValues().get(0)).isEqualTo(first.getVariables());
-    assertThat(payloadCaptor.getAllValues().get(1)).isEqualTo(second.getVariables());
+    assertThat(variablesCaptor.getAllValues().get(0)).isEqualTo(first.getVariables());
+    assertThat(variablesCaptor.getAllValues().get(1)).isEqualTo(second.getVariables());
   }
 
   private MessageSubscriptionRecord messageSubscription() {

@@ -449,8 +449,8 @@ public class JobWorkerTest {
         .jobType(jobType)
         .handler(
             (c, job) -> {
-              final Map<String, Object> payload = job.getVariablesAsMap();
-              capturedVariables.addAll(payload.keySet());
+              final Map<String, Object> variables = job.getVariablesAsMap();
+              capturedVariables.addAll(variables.keySet());
               latch.countDown();
             })
         .fetchVariables(fetchVariables)
@@ -477,8 +477,8 @@ public class JobWorkerTest {
         .jobType(jobType)
         .handler(
             (c, job) -> {
-              final Map<String, Object> payload = job.getVariablesAsMap();
-              capturedVariables.addAll(payload.keySet());
+              final Map<String, Object> variables = job.getVariablesAsMap();
+              capturedVariables.addAll(variables.keySet());
               latch.countDown();
             })
         .fetchVariables(fetchVariables)

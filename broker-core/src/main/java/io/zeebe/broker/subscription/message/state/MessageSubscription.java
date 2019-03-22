@@ -69,8 +69,8 @@ public class MessageSubscription implements DbValue {
     return messageVariables;
   }
 
-  public void setMessageVariables(DirectBuffer payload) {
-    this.messageVariables.wrap(payload);
+  public void setMessageVariables(DirectBuffer variables) {
+    this.messageVariables.wrap(variables);
   }
 
   public long getWorkflowInstanceKey() {

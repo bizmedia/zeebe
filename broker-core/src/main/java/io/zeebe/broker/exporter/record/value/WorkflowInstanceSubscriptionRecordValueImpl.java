@@ -30,11 +30,11 @@ public class WorkflowInstanceSubscriptionRecordValueImpl extends RecordValueWith
 
   public WorkflowInstanceSubscriptionRecordValueImpl(
       final ExporterObjectMapper objectMapper,
-      final String payload,
+      final String variables,
       final String messageName,
       final long workflowInstanceKey,
       final long elementInstanceKey) {
-    super(objectMapper, payload);
+    super(objectMapper, variables);
     this.messageName = messageName;
     this.workflowInstanceKey = workflowInstanceKey;
     this.elementInstanceKey = elementInstanceKey;

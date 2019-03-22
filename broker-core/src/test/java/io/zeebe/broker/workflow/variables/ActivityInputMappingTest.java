@@ -24,7 +24,7 @@ import io.zeebe.broker.test.EmbeddedBrokerRule;
 import io.zeebe.exporter.record.Record;
 import io.zeebe.model.bpmn.Bpmn;
 import io.zeebe.model.bpmn.builder.SubProcessBuilder;
-import io.zeebe.model.bpmn.builder.ZeebePayloadMappingBuilder;
+import io.zeebe.model.bpmn.builder.ZeebeVariablesMappingBuilder;
 import io.zeebe.protocol.intent.WorkflowInstanceIntent;
 import io.zeebe.test.broker.protocol.clientapi.ClientApiRule;
 import io.zeebe.test.util.MsgPackUtil;
@@ -137,8 +137,8 @@ public class ActivityInputMappingTest {
         .containsAll(expectedActivityVariables);
   }
 
-  private static Consumer<ZeebePayloadMappingBuilder<SubProcessBuilder>> mapping(
-      Consumer<ZeebePayloadMappingBuilder<SubProcessBuilder>> mappingBuilder) {
+  private static Consumer<ZeebeVariablesMappingBuilder<SubProcessBuilder>> mapping(
+      Consumer<ZeebeVariablesMappingBuilder<SubProcessBuilder>> mappingBuilder) {
     return mappingBuilder;
   }
 

@@ -20,9 +20,9 @@ import org.agrona.DirectBuffer;
 
 public interface PayloadRequestWriter extends RequestWriter {
 
-  void payload(byte[] payload, int offset, int length);
+  void variables(byte[] payload, int offset, int length);
 
-  void payload(DirectBuffer buffer, int offset, int length);
+  void variables(DirectBuffer buffer, int offset, int length);
 
-  void payload(ByteBuffer byteBuffer);
+  void variables(ByteBuffer byteBuffer);
 }

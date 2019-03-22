@@ -37,7 +37,7 @@ public class JobRecordValueImpl extends RecordValueWithVariablesImpl implements 
 
   public JobRecordValueImpl(
       final ExporterObjectMapper objectMapper,
-      final String payload,
+      final String variables,
       final String type,
       final String worker,
       final Instant deadline,
@@ -45,7 +45,7 @@ public class JobRecordValueImpl extends RecordValueWithVariablesImpl implements 
       final Map<String, Object> customHeaders,
       final int retries,
       final String errorMessage) {
-    super(objectMapper, payload);
+    super(objectMapper, variables);
     this.type = type;
     this.worker = worker;
     this.deadline = deadline;

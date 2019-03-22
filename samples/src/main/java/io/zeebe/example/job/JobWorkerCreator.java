@@ -59,7 +59,7 @@ public class JobWorkerCreator {
       // here: business logic that is executed with every job
       System.out.println(
           String.format(
-              "[type: %s, key: %s, lockExpirationTime: %s]\n[headers: %s]\n[payload: %s]\n===",
+              "[type: %s, key: %s, lockExpirationTime: %s]\n[headers: %s]\n[variables: %s]\n===",
               job.getType(),
               job.getKey(),
               job.getDeadline().toString(),

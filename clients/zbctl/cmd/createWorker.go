@@ -46,7 +46,7 @@ var createWorkerCmd = &cobra.Command{
 	Short: "Create a polling job worker",
 	Long: `Create a polling job worker which will call the given handler for every job.
 The handler will receive the variables of the activated job as JSON object on stdin.
-If the handler finishes successful the job will be completed with the payload provided on stdout, again as JSON object.
+If the handler finishes successful the job will be completed with the variables provided on stdout, again as JSON object.
 If the handler exits with an none zero exit code the job will be failed, the handler can provide a failure message on stderr.
 `,
 	Args:    cobra.ExactArgs(1),
@@ -71,7 +71,7 @@ If the handler exits with an none zero exit code the job will be failed, the han
 
 func handle(jobClient worker.JobClient, job entities.Job) {
 	key := job.Key
-	variables := job.Payload
+	variables := job.Variables
 	log.Println("Activated job", key, "with variables", variables)
 
 	command := exec.Command(createWorkerHandlerArgs[0], createWorkerHandlerArgs[1:]...)
@@ -96,12 +96,12 @@ func handle(jobClient worker.JobClient, job entities.Job) {
 	}
 
 	if command.Wait() == nil {
-		payload := string(stdout.Bytes())
-		if len(payload) < 2 {
+		variables := string(stdout.Bytes())
+		if len(variables) < 2 {
 			// use empty variables if non was returned
-			payload = "{}"
+			variables = "{}"
 		}
-		completeJob(jobClient, job, payload)
+		completeJob(jobClient, job, variables)
 	} else {
 		failJob(jobClient, job, string(stderr.Bytes()))
 	}

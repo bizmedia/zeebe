@@ -13,21 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.zeebe.client.benchmark.msgpack;
+package io.zeebe.model.bpmn.builder;
 
-import org.agrona.DirectBuffer;
-import org.agrona.MutableDirectBuffer;
+public interface ZeebeVariablesMappingBuilder<B> {
 
-public interface MsgPackSerializer {
+  B zeebeInput(String source, String target);
 
-  void serialize(Object value, MutableDirectBuffer buf, int offset) throws Exception;
-
-  Object deserialize(Class<?> clazz, DirectBuffer buf, int offset, int length) throws Exception;
-
-  String getDescription();
-
-  enum Type {
-    JACKSON,
-    BROKER
-  }
+  B zeebeOutput(String source, String target);
 }
