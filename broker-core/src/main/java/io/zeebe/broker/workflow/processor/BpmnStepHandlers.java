@@ -118,7 +118,9 @@ public class BpmnStepHandlers {
         new CatchEventSupplierElementTerminatingHandler<>(state.getIncidentState()));
 
     stepHandlers.put(BpmnStep.RECEIVE_TASK_ELEMENT_ACTIVATED, new ElementActivatedHandler<>(null));
-    stepHandlers.put(BpmnStep.RECEIVE_TASK_EVENT_OCCURRED, new ActivityEventOccurredHandler<>());
+    stepHandlers.put(
+        BpmnStep.RECEIVE_TASK_EVENT_OCCURRED,
+        new ActivityEventOccurredHandler<>(WorkflowInstanceIntent.ELEMENT_COMPLETING));
 
     stepHandlers.put(
         BpmnStep.SERVICE_TASK_ELEMENT_ACTIVATED, new ServiceTaskElementActivatedHandler<>());

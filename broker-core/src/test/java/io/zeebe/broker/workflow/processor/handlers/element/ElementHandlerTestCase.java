@@ -25,7 +25,7 @@ import io.zeebe.broker.logstreams.processor.TypedRecord;
 import io.zeebe.broker.logstreams.processor.TypedStreamWriter;
 import io.zeebe.broker.util.MockTypedRecord;
 import io.zeebe.broker.util.ZeebeStateRule;
-import io.zeebe.broker.workflow.model.element.ExecutableFlowNode;
+import io.zeebe.broker.workflow.model.element.ExecutableFlowElement;
 import io.zeebe.broker.workflow.processor.BpmnStepContext;
 import io.zeebe.broker.workflow.processor.CatchEventBehavior;
 import io.zeebe.broker.workflow.processor.EventOutput;
@@ -43,7 +43,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 
-public abstract class ElementHandlerTestCase {
+public abstract class ElementHandlerTestCase<T extends ExecutableFlowElement> {
   @ClassRule public static ZeebeStateRule zeebeStateRule = new ZeebeStateRule();
 
   @Mock public EventOutput eventOutput;
@@ -51,7 +51,7 @@ public abstract class ElementHandlerTestCase {
   @Mock public TypedStreamWriter streamWriter;
   @Captor public ArgumentCaptor<IncidentRecord> incidentCaptor;
 
-  protected BpmnStepContext<ExecutableFlowNode> context;
+  protected BpmnStepContext<T> context;
 
   @Before
   public void setUp() {
