@@ -28,21 +28,12 @@ public class ErrorRecord extends UnpackedObject {
   private final LongProperty errorEventPositionProp = new LongProperty("errorEventPosition");
 
   private final LongProperty workflowInstanceKeyProp = new LongProperty("workflowInstanceKey", -1L);
-  private final LongProperty workflowKeyProp = new LongProperty("workflowKey", -1L);
-  private final StringProperty bpmnProcessIdProp = new StringProperty("bpmnProcessId", "");
-
-  private final StringProperty elementIdProp = new StringProperty("elementId", "");
-  private final LongProperty elementInstanceKeyProp = new LongProperty("elementInstanceKey", -1L);
 
   public ErrorRecord() {
     this.declareProperty(exceptionMessageProp)
         .declareProperty(stacktraceProp)
         .declareProperty(errorEventPositionProp)
-        .declareProperty(workflowInstanceKeyProp)
-        .declareProperty(workflowKeyProp)
-        .declareProperty(bpmnProcessIdProp)
-        .declareProperty(elementIdProp)
-        .declareProperty(elementInstanceKeyProp);
+        .declareProperty(workflowInstanceKeyProp);
   }
 
   public void initErrorRecord(Throwable throwable, long position) {
@@ -69,48 +60,12 @@ public class ErrorRecord extends UnpackedObject {
     return errorEventPositionProp.getValue();
   }
 
-  public DirectBuffer getBpmnProcessId() {
-    return bpmnProcessIdProp.getValue();
-  }
-
-  public ErrorRecord setBpmnProcessId(DirectBuffer directBuffer) {
-    bpmnProcessIdProp.setValue(directBuffer, 0, directBuffer.capacity());
-    return this;
-  }
-
   public long getWorkflowInstanceKey() {
     return workflowInstanceKeyProp.getValue();
   }
 
   public ErrorRecord setWorkflowInstanceKey(long workflowInstanceKey) {
     this.workflowInstanceKeyProp.setValue(workflowInstanceKey);
-    return this;
-  }
-
-  public long getWorkflowKey() {
-    return workflowKeyProp.getValue();
-  }
-
-  public ErrorRecord setWorkflowKey(long workflowInstanceKey) {
-    this.workflowKeyProp.setValue(workflowInstanceKey);
-    return this;
-  }
-
-  public DirectBuffer getElementId() {
-    return elementIdProp.getValue();
-  }
-
-  public ErrorRecord setElementId(DirectBuffer elementId) {
-    this.elementIdProp.setValue(elementId, 0, elementId.capacity());
-    return this;
-  }
-
-  public long getElementInstanceKey() {
-    return elementInstanceKeyProp.getValue();
-  }
-
-  public ErrorRecord setElementInstanceKey(long elementInstanceKey) {
-    this.elementInstanceKeyProp.setValue(elementInstanceKey);
     return this;
   }
 }
