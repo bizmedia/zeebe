@@ -370,7 +370,8 @@ public class ExporterRecordMapper {
         asString(record.getName()),
         asJson(record.getValue()),
         record.getScopeKey(),
-        record.getWorkflowInstanceKey());
+        record.getWorkflowInstanceKey(),
+        record.getWorkflowKey());
   }
 
   private VariableDocumentRecordValue ofVariableDocumentRecord(LoggedEvent event) {

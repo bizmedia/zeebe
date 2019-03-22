@@ -75,9 +75,12 @@ public class WorkflowInstanceVariableTypeTest {
     };
   }
 
+  private static long workflowKey;
+
   @BeforeClass
   public static void deployWorkflow() {
-    apiRule.deployWorkflow(WORKFLOW);
+    workflowKey =
+        apiRule.deployWorkflow(WORKFLOW).getValue().getDeployedWorkflows().get(0).getWorkflowKey();
   }
 
   @Test
@@ -98,6 +101,7 @@ public class WorkflowInstanceVariableTypeTest {
 
     Assertions.assertThat(variableRecord.getValue())
         .hasScopeKey(workflowInstanceKey)
+        .hasWorkflowKey(workflowKey)
         .hasName("x")
         .hasValue(expectedValue);
   }
