@@ -38,16 +38,11 @@ public class StartEventEventOccurredHandler<T extends ExecutableCatchEventElemen
   private final WorkflowState state;
 
   public StartEventEventOccurredHandler(WorkflowState state) {
-    this(null, state);
-  }
-
-  public StartEventEventOccurredHandler(WorkflowInstanceIntent nextState, WorkflowState state) {
-    super(nextState);
     this.state = state;
   }
 
   @Override
-  protected boolean handleState(BpmnStepContext<T> context) {
+  protected void handleRecord(BpmnStepContext<T> context) {
     final WorkflowInstanceRecord event = context.getRecord().getValue();
     final long workflowKey = event.getWorkflowKey();
     final DeployedWorkflow workflow = state.getWorkflowByKey(workflowKey);
@@ -58,14 +53,14 @@ public class StartEventEventOccurredHandler<T extends ExecutableCatchEventElemen
     if (workflow == null) {
       Loggers.WORKFLOW_PROCESSOR_LOGGER.error(
           String.format(NO_WORKFLOW_FOUND_MESSAGE, workflowKey));
-      return false;
+      return;
     }
 
     final EventTrigger triggeredEvent = getTriggeredEvent(context, workflowKey);
     if (triggeredEvent == null) {
       Loggers.WORKFLOW_PROCESSOR_LOGGER.error(
           String.format(NO_TRIGGERED_EVENT_MESSAGE, workflowKey));
-      return false;
+      return;
     }
 
     createWorkflowInstance(context, workflow, workflowInstanceKey);
@@ -77,7 +72,6 @@ public class StartEventEventOccurredHandler<T extends ExecutableCatchEventElemen
             .setFlowScopeKey(workflowInstanceKey);
 
     deferEvent(context, workflowKey, workflowInstanceKey, record, triggeredEvent);
-    return true;
   }
 
   private void createWorkflowInstance(
@@ -95,15 +89,5 @@ public class StartEventEventOccurredHandler<T extends ExecutableCatchEventElemen
             WorkflowInstanceIntent.ELEMENT_ACTIVATING,
             record,
             workflow.getWorkflow());
-  }
-
-  private void deferStartEventRecord(
-      BpmnStepContext<T> context, long workflowInstanceKey, WorkflowInstanceRecord event) {
-    event.setWorkflowInstanceKey(workflowInstanceKey);
-    event.setFlowScopeKey(workflowInstanceKey);
-
-    context
-        .getOutput()
-        .deferRecord(workflowInstanceKey, event, WorkflowInstanceIntent.ELEMENT_ACTIVATING);
   }
 }

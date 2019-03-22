@@ -32,19 +32,14 @@ import java.util.List;
  */
 public class FlowOutElementCompletedHandler<T extends ExecutableFlowNodeImpl>
     extends ElementCompletedHandler<T> {
-  public FlowOutElementCompletedHandler() {
-    super();
-  }
 
   @Override
-  protected boolean handleState(BpmnStepContext<T> context) {
+  protected void handleRecord(BpmnStepContext<T> context) {
     final List<ExecutableSequenceFlow> outgoing = context.getElement().getOutgoing();
 
     for (final ExecutableSequenceFlow flow : outgoing) {
       takeSequenceFlow(context, flow);
     }
-
-    return super.handleState(context);
   }
 
   private void takeSequenceFlow(BpmnStepContext<T> context, ExecutableSequenceFlow flow) {

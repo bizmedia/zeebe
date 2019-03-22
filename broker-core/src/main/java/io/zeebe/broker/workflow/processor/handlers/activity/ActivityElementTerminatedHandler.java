@@ -32,13 +32,9 @@ import io.zeebe.broker.workflow.state.ElementInstance;
 public class ActivityElementTerminatedHandler<T extends ExecutableActivity>
     extends ElementTerminatedHandler<T> {
 
-  public ActivityElementTerminatedHandler() {
-    super();
-  }
-
   @Override
-  protected boolean handleState(BpmnStepContext<T> context) {
+  protected void handleRecord(BpmnStepContext<T> context) {
     publishDeferredRecords(context);
-    return super.handleState(context);
+    super.handleRecord(context);
   }
 }

@@ -29,27 +29,9 @@ import io.zeebe.protocol.intent.WorkflowInstanceIntent;
  * Checks the event trigger, and if it is related to the element itself, will transition to
  * completing.
  */
-public class EventOccurredHandler<T extends ExecutableFlowElement> extends AbstractHandler<T> {
+public abstract class EventOccurredHandler<T extends ExecutableFlowElement>
+    extends AbstractHandler<T> {
   private final WorkflowInstanceRecord eventRecord = new WorkflowInstanceRecord();
-
-  public EventOccurredHandler() {
-    this(WorkflowInstanceIntent.ELEMENT_COMPLETING);
-  }
-
-  public EventOccurredHandler(WorkflowInstanceIntent nextState) {
-    super(nextState);
-  }
-
-  @Override
-  protected boolean shouldHandleState(BpmnStepContext<T> context) {
-    return super.shouldHandleState(context)
-        && (!hasWorkflowInstance(context) || isElementActive(context.getElementInstance()));
-  }
-
-  @Override
-  protected boolean handleState(BpmnStepContext<T> context) {
-    return true;
-  }
 
   /**
    * Returns the latest event trigger but does not consume it from the state. It will be consumed
@@ -137,13 +119,5 @@ public class EventOccurredHandler<T extends ExecutableFlowElement> extends Abstr
     eventRecord.setBpmnElementType(elementType);
 
     return eventRecord;
-  }
-
-  /**
-   * Timer/Message start events publish an EVENT_OCCURRED event to their respective flow elements,
-   * but these are not initially part of a workflow instance.
-   */
-  private boolean hasWorkflowInstance(BpmnStepContext<T> context) {
-    return context.getRecord().getValue().getWorkflowInstanceKey() >= 0;
   }
 }

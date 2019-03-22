@@ -21,39 +21,28 @@ import io.zeebe.broker.incident.processor.IncidentState;
 import io.zeebe.broker.workflow.model.element.ExecutableFlowElementContainer;
 import io.zeebe.broker.workflow.processor.BpmnStepContext;
 import io.zeebe.broker.workflow.processor.EventOutput;
-import io.zeebe.broker.workflow.processor.handlers.catchevent.CatchEventSupplierElementTerminatingHandler;
+import io.zeebe.broker.workflow.processor.handlers.AbstractHandler;
 import io.zeebe.broker.workflow.state.ElementInstance;
 import io.zeebe.broker.workflow.state.ElementInstanceState;
 import io.zeebe.protocol.intent.WorkflowInstanceIntent;
 import java.util.List;
 
 public class ContainerElementTerminatingHandler<T extends ExecutableFlowElementContainer>
-    extends CatchEventSupplierElementTerminatingHandler<T> {
+    extends AbstractHandler<T> {
+  private final IncidentState incidentState;
 
   public ContainerElementTerminatingHandler(IncidentState incidentState) {
-    this(null, incidentState);
-  }
-
-  public ContainerElementTerminatingHandler(
-      WorkflowInstanceIntent nextState, IncidentState incidentState) {
-    super(nextState, incidentState);
+    this.incidentState = incidentState;
   }
 
   @Override
-  protected boolean handleState(BpmnStepContext<T> context) {
-    if (!super.handleState(context)) {
-      return false;
-    }
-
+  public void handleRecord(BpmnStepContext<T> context) {
     final ElementInstance elementInstance = context.getElementInstance();
     final EventOutput output = context.getOutput();
     final ElementInstanceState elementInstanceState = context.getElementInstanceState();
+    final int childCount = context.getElementInstance().getNumberOfActiveElementInstances();
 
-    final List<ElementInstance> children =
-        elementInstanceState.getChildren(elementInstance.getKey());
-
-    if (children.isEmpty()) {
-      // todo: https://github.com/zeebe-io/zeebe/issues/1970
+    if (childCount == 0) {
       elementInstanceState.visitFailedRecords(
           elementInstance.getKey(),
           (token) -> {
@@ -64,14 +53,25 @@ public class ContainerElementTerminatingHandler<T extends ExecutableFlowElementC
 
       transitionTo(context, WorkflowInstanceIntent.ELEMENT_TERMINATED);
     } else {
-      for (final ElementInstance child : children) {
-        if (child.canTerminate()) {
-          output.appendFollowUpEvent(
-              child.getKey(), WorkflowInstanceIntent.ELEMENT_TERMINATING, child.getValue());
-        }
+      terminateChildren(elementInstance, output, elementInstanceState);
+    }
+  }
+
+  private void terminateChildren(
+      ElementInstance elementInstance,
+      EventOutput output,
+      ElementInstanceState elementInstanceState) {
+    final List<ElementInstance> children =
+        elementInstanceState.getChildren(elementInstance.getKey());
+    for (final ElementInstance child : children) {
+      if (child.canTerminate()) {
+        terminateChild(output, child);
       }
     }
+  }
 
-    return true;
+  private void terminateChild(EventOutput output, ElementInstance child) {
+    output.appendFollowUpEvent(
+        child.getKey(), WorkflowInstanceIntent.ELEMENT_TERMINATING, child.getValue());
   }
 }

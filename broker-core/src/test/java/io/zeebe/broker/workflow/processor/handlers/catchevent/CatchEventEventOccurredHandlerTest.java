@@ -19,8 +19,8 @@ package io.zeebe.broker.workflow.processor.handlers.catchevent;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.zeebe.broker.workflow.model.element.ExecutableCatchEventSupplier;
-import io.zeebe.broker.workflow.model.element.MockExecutableCatchEventSupplier;
+import io.zeebe.broker.workflow.model.element.ExecutableCatchEvent;
+import io.zeebe.broker.workflow.model.element.ExecutableCatchEventElement;
 import io.zeebe.broker.workflow.processor.handlers.element.ElementHandlerTestCase;
 import io.zeebe.broker.workflow.state.ElementInstance;
 import io.zeebe.broker.workflow.state.EventScopeInstanceState;
@@ -28,6 +28,7 @@ import io.zeebe.broker.workflow.state.EventTrigger;
 import io.zeebe.broker.workflow.state.VariablesState;
 import io.zeebe.protocol.intent.WorkflowInstanceIntent;
 import io.zeebe.test.util.MsgPackUtil;
+import io.zeebe.test.util.Strings;
 import java.util.Collections;
 import org.agrona.DirectBuffer;
 import org.junit.Before;
@@ -36,9 +37,9 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.StrictStubs.class)
-public class CatchEventSupplierEventOccurredHandlerTest
-    extends ElementHandlerTestCase<ExecutableCatchEventSupplier> {
-  private CatchEventSupplierEventOccurredHandler<ExecutableCatchEventSupplier> handler;
+public class CatchEventEventOccurredHandlerTest
+    extends ElementHandlerTestCase<ExecutableCatchEvent> {
+  private CatchEventEventOccurredHandler<ExecutableCatchEvent> handler;
   private final EventScopeInstanceState eventState =
       zeebeStateRule.getZeebeState().getWorkflowState().getEventScopeInstanceState();
   private final VariablesState variablesState =
@@ -52,13 +53,14 @@ public class CatchEventSupplierEventOccurredHandlerTest
   @Before
   public void setUp() {
     super.setUp();
-    handler = new CatchEventSupplierEventOccurredHandler<>();
+    handler = new CatchEventEventOccurredHandler<>();
   }
 
   @Test
   public void shouldProcessEventTrigger() {
     // given
-    final MockExecutableCatchEventSupplier element = new MockExecutableCatchEventSupplier();
+    final ExecutableCatchEvent element =
+        new ExecutableCatchEventElement(Strings.newRandomValidBpmnId());
     final ElementInstance instance =
         createAndSetContextElementInstance(WorkflowInstanceIntent.ELEMENT_ACTIVATED);
     final EventTrigger eventTrigger =
@@ -78,7 +80,8 @@ public class CatchEventSupplierEventOccurredHandlerTest
   @Test
   public void shouldReturnUnhandledWhenNoEventTrigger() {
     // given
-    final MockExecutableCatchEventSupplier element = new MockExecutableCatchEventSupplier();
+    final ExecutableCatchEvent element =
+        new ExecutableCatchEventElement(Strings.newRandomValidBpmnId());
     createAndSetContextElementInstance(WorkflowInstanceIntent.ELEMENT_ACTIVATED);
     context.setElement(element);
     context.getRecord().getMetadata().intent(WorkflowInstanceIntent.EVENT_OCCURRED);

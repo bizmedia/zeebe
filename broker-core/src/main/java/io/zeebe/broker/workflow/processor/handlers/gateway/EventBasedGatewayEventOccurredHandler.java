@@ -24,7 +24,6 @@ import io.zeebe.broker.workflow.processor.BpmnStepContext;
 import io.zeebe.broker.workflow.processor.handlers.element.EventOccurredHandler;
 import io.zeebe.broker.workflow.state.EventTrigger;
 import io.zeebe.protocol.impl.record.value.workflowinstance.WorkflowInstanceRecord;
-import io.zeebe.protocol.intent.WorkflowInstanceIntent;
 import io.zeebe.util.buffer.BufferUtil;
 import java.util.List;
 
@@ -32,36 +31,30 @@ import java.util.List;
 // https://github.com/zeebe-io/zeebe/issues/1979
 public class EventBasedGatewayEventOccurredHandler<T extends ExecutableEventBasedGateway>
     extends EventOccurredHandler<T> {
-  public EventBasedGatewayEventOccurredHandler() {
-    super();
-  }
-
-  public EventBasedGatewayEventOccurredHandler(WorkflowInstanceIntent nextState) {
-    super(nextState);
-  }
 
   @Override
-  protected boolean handleState(BpmnStepContext<T> context) {
-    if (super.handleState(context)) {
-      final EventTrigger event = getTriggeredEvent(context, context.getRecord().getKey());
-      final ExecutableSequenceFlow flow = getSequenceFlow(context, event);
-
-      if (flow == null) {
-        Loggers.WORKFLOW_PROCESSOR_LOGGER.error(
-            "No outgoing flow has a target with ID {} for process {}",
-            BufferUtil.bufferAsString(event.getElementId()),
-            BufferUtil.bufferAsString(context.getValue().getBpmnProcessId()));
-        return false;
-      }
-
-      final WorkflowInstanceRecord eventRecord =
-          getEventRecord(context, event, flow.getTarget().getElementType());
-      deferEvent(
-          context, context.getRecord().getKey(), context.getRecord().getKey(), eventRecord, event);
-      return true;
+  protected void handleRecord(BpmnStepContext<T> context) {
+    final EventTrigger event = getTriggeredEvent(context, context.getRecord().getKey());
+    if (event == null) {
+      Loggers.WORKFLOW_PROCESSOR_LOGGER.debug(
+          "Processing EVENT_OCCURRED but no event trigger found for element {}",
+          context.getElementInstance());
+      return;
     }
 
-    return false;
+    final ExecutableSequenceFlow flow = getSequenceFlow(context, event);
+    if (flow == null) {
+      Loggers.WORKFLOW_PROCESSOR_LOGGER.error(
+          "No outgoing flow has a target with ID {} for process {}",
+          BufferUtil.bufferAsString(event.getElementId()),
+          BufferUtil.bufferAsString(context.getValue().getBpmnProcessId()));
+      return;
+    }
+
+    final WorkflowInstanceRecord eventRecord =
+        getEventRecord(context, event, flow.getTarget().getElementType());
+    deferEvent(
+        context, context.getRecord().getKey(), context.getRecord().getKey(), eventRecord, event);
   }
 
   private ExecutableSequenceFlow getSequenceFlow(BpmnStepContext<T> context, EventTrigger event) {

@@ -32,17 +32,9 @@ import io.zeebe.protocol.intent.WorkflowInstanceIntent;
  */
 public class ElementTerminatedHandler<T extends ExecutableFlowNode>
     extends AbstractTerminalStateHandler<T> {
-  public ElementTerminatedHandler() {
-    super();
-  }
 
   @Override
-  protected boolean shouldHandleState(BpmnStepContext<T> context) {
-    return super.shouldHandleState(context) && isStateSameAsElementState(context);
-  }
-
-  @Override
-  protected boolean handleState(BpmnStepContext<T> context) {
+  protected void handleRecord(BpmnStepContext<T> context) {
     final ElementInstance flowScopeInstance = context.getFlowScopeInstance();
     final boolean isScopeTerminating =
         flowScopeInstance != null
@@ -57,7 +49,5 @@ public class ElementTerminatedHandler<T extends ExecutableFlowNode>
               WorkflowInstanceIntent.ELEMENT_TERMINATED,
               flowScopeInstance.getValue());
     }
-
-    return super.handleState(context);
   }
 }

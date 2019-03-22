@@ -19,40 +19,25 @@ package io.zeebe.broker.workflow.processor.handlers.gateway;
 
 import io.zeebe.broker.workflow.model.element.ExecutableEventBasedGateway;
 import io.zeebe.broker.workflow.processor.BpmnStepContext;
-import io.zeebe.broker.workflow.processor.handlers.IOMappingHelper;
-import io.zeebe.broker.workflow.processor.handlers.element.ElementActivatingHandler;
-import io.zeebe.broker.workflow.processor.message.MessageCorrelationKeyException;
-import io.zeebe.protocol.ErrorType;
-import io.zeebe.protocol.intent.WorkflowInstanceIntent;
+import io.zeebe.broker.workflow.processor.handlers.AbstractHandler;
+import io.zeebe.broker.workflow.processor.handlers.ElementStateHandler;
 
 public class EventBasedGatewayElementActivatingHandler<T extends ExecutableEventBasedGateway>
-    extends ElementActivatingHandler<T> {
-
-  public EventBasedGatewayElementActivatingHandler() {
-    this(WorkflowInstanceIntent.ELEMENT_ACTIVATED);
-  }
-
-  public EventBasedGatewayElementActivatingHandler(WorkflowInstanceIntent nextState) {
-    super(nextState);
-  }
+    extends AbstractHandler<T> {
+  private final ElementStateHandler<T> elementActivatingHandler;
+  private final ElementStateHandler<T> catchEventSupplierActivatingHandler;
 
   public EventBasedGatewayElementActivatingHandler(
-      WorkflowInstanceIntent nextState, IOMappingHelper ioMappingHelper) {
-    super(nextState, ioMappingHelper);
+      ElementStateHandler<T> elementActivatingHandler,
+      ElementStateHandler<T> catchEventSupplierActivatingHandler) {
+    this.elementActivatingHandler = elementActivatingHandler;
+    this.catchEventSupplierActivatingHandler = catchEventSupplierActivatingHandler;
   }
 
   @Override
-  protected boolean handleState(BpmnStepContext<T> context) {
-    if (super.handleState(context)) {
-      try {
-        context.getCatchEventBehavior().subscribeToEvents(context, context.getElement());
-        return true;
-      } catch (MessageCorrelationKeyException e) {
-        context.raiseIncident(
-            ErrorType.EXTRACT_VALUE_ERROR, e.getContext().getVariablesScopeKey(), e.getMessage());
-      }
+  protected void handleRecord(BpmnStepContext<T> context) {
+    if (elementActivatingHandler.handleState(context)) {
+      catchEventSupplierActivatingHandler.handleState(context);
     }
-
-    return false;
   }
 }

@@ -21,7 +21,8 @@ import io.zeebe.broker.Loggers;
 import io.zeebe.broker.workflow.model.element.ExecutableActivity;
 import io.zeebe.broker.workflow.model.element.ExecutableBoundaryEvent;
 import io.zeebe.broker.workflow.processor.BpmnStepContext;
-import io.zeebe.broker.workflow.processor.handlers.catchevent.CatchEventSupplierEventOccurredHandler;
+import io.zeebe.broker.workflow.processor.handlers.ElementStateHandler;
+import io.zeebe.broker.workflow.processor.handlers.element.EventOccurredHandler;
 import io.zeebe.broker.workflow.state.EventTrigger;
 import io.zeebe.protocol.impl.record.value.workflowinstance.WorkflowInstanceRecord;
 import io.zeebe.protocol.intent.WorkflowInstanceIntent;
@@ -29,20 +30,21 @@ import io.zeebe.util.buffer.BufferUtil;
 import java.util.List;
 
 public class ActivityEventOccurredHandler<T extends ExecutableActivity>
-    extends CatchEventSupplierEventOccurredHandler<T> {
-  public ActivityEventOccurredHandler() {
-    this(null);
-  }
+    extends EventOccurredHandler<T> implements ElementStateHandler<T> {
 
-  public ActivityEventOccurredHandler(WorkflowInstanceIntent nextState) {
-    super(nextState);
+  @Override
+  protected void handleRecord(BpmnStepContext<T> context) {
+    handleState(context);
   }
 
   @Override
-  protected boolean handleState(BpmnStepContext<T> context) {
+  public boolean handleState(BpmnStepContext<T> context) {
     final EventTrigger event = getTriggeredEvent(context, context.getRecord().getKey());
-    if (isActivityEventHandler(context, event)) {
-      return super.handleState(context);
+    if (event == null) {
+      Loggers.WORKFLOW_PROCESSOR_LOGGER.debug(
+          "Processing EVENT_OCCURRED but no event trigger found for element {}",
+          context.getElementInstance());
+      return false;
     }
 
     final ExecutableBoundaryEvent boundaryEvent = getBoundaryEvent(context, event);
@@ -65,10 +67,6 @@ public class ActivityEventOccurredHandler<T extends ExecutableActivity>
     }
 
     return true;
-  }
-
-  private boolean isActivityEventHandler(BpmnStepContext<T> context, EventTrigger event) {
-    return event.getElementId().equals(context.getElement().getId());
   }
 
   private ExecutableBoundaryEvent getBoundaryEvent(BpmnStepContext<T> context, EventTrigger event) {

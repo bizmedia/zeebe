@@ -30,9 +30,6 @@ import java.util.List;
  */
 public class AbstractTerminalStateHandler<T extends ExecutableFlowElement>
     extends AbstractHandler<T> {
-  public AbstractTerminalStateHandler() {
-    super(null);
-  }
 
   @Override
   public void handle(BpmnStepContext<T> context) {
@@ -45,13 +42,11 @@ public class AbstractTerminalStateHandler<T extends ExecutableFlowElement>
   }
 
   @Override
-  protected boolean handleState(BpmnStepContext<T> context) {
+  protected void handleRecord(BpmnStepContext<T> context) {
     final ElementInstance flowScopeInstance = context.getFlowScopeInstance();
     if (flowScopeInstance != null) {
       flowScopeInstance.consumeToken();
     }
-
-    return true;
   }
 
   protected void publishDeferredRecords(BpmnStepContext<T> context) {

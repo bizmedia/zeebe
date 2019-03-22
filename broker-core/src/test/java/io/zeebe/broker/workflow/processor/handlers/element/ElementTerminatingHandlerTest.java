@@ -51,7 +51,7 @@ public class ElementTerminatingHandlerTest extends ElementHandlerTestCase<Execut
     context.setElementInstance(null);
 
     // when - then
-    assertThat(handler.shouldHandleState(context)).isFalse();
+    assertThat(handler.shouldHandle(context)).isFalse();
   }
 
   @Test
@@ -62,7 +62,7 @@ public class ElementTerminatingHandlerTest extends ElementHandlerTestCase<Execut
     instance.setState(WorkflowInstanceIntent.ELEMENT_COMPLETING);
 
     // when - then
-    assertThat(handler.shouldHandleState(context)).isFalse();
+    assertThat(handler.shouldHandle(context)).isFalse();
   }
 
   @Test

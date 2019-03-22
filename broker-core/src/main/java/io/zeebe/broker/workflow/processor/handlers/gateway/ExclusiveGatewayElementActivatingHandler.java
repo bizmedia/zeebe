@@ -20,7 +20,8 @@ package io.zeebe.broker.workflow.processor.handlers.gateway;
 import io.zeebe.broker.workflow.model.element.ExecutableExclusiveGateway;
 import io.zeebe.broker.workflow.model.element.ExecutableSequenceFlow;
 import io.zeebe.broker.workflow.processor.BpmnStepContext;
-import io.zeebe.broker.workflow.processor.handlers.element.ElementActivatingHandler;
+import io.zeebe.broker.workflow.processor.handlers.AbstractHandler;
+import io.zeebe.broker.workflow.processor.handlers.ElementStateHandler;
 import io.zeebe.msgpack.el.CompiledJsonCondition;
 import io.zeebe.msgpack.el.JsonConditionException;
 import io.zeebe.msgpack.el.JsonConditionInterpreter;
@@ -34,29 +35,26 @@ import java.util.Set;
 import org.agrona.DirectBuffer;
 
 public class ExclusiveGatewayElementActivatingHandler<T extends ExecutableExclusiveGateway>
-    extends ElementActivatingHandler<T> {
+    extends AbstractHandler<T> {
   private static final String NO_OUTGOING_FLOW_CHOSEN_ERROR =
       "Expected at least one condition to evaluate to true, or to have a default flow";
   private final WorkflowInstanceRecord record = new WorkflowInstanceRecord();
+  private final ElementStateHandler<T> elementActivatingHandler;
   private final JsonConditionInterpreter interpreter;
 
-  public ExclusiveGatewayElementActivatingHandler() {
-    this(new JsonConditionInterpreter());
-  }
-
-  public ExclusiveGatewayElementActivatingHandler(JsonConditionInterpreter interpreter) {
-    super();
+  public ExclusiveGatewayElementActivatingHandler(
+      ElementStateHandler<T> elementActivatingHandler, JsonConditionInterpreter interpreter) {
+    this.elementActivatingHandler = elementActivatingHandler;
     this.interpreter = interpreter;
   }
 
   @Override
-  protected boolean handleState(BpmnStepContext<T> context) {
-    if (!super.handleState(context)) {
-      return false;
+  protected void handleRecord(BpmnStepContext<T> context) {
+    if (!elementActivatingHandler.handleState(context)) {
+      return;
     }
 
     final WorkflowInstanceRecord value = context.getValue();
-
     final ExecutableSequenceFlow sequenceFlow;
     try {
       final ExecutableExclusiveGateway exclusiveGateway = context.getElement();
@@ -65,16 +63,15 @@ public class ExclusiveGatewayElementActivatingHandler<T extends ExecutableExclus
       sequenceFlow = getSequenceFlowWithFulfilledCondition(exclusiveGateway, payload);
     } catch (JsonConditionException e) {
       context.raiseIncident(ErrorType.CONDITION_ERROR, e.getMessage());
-      return false;
+      return;
     }
 
     if (sequenceFlow == null) {
       context.raiseIncident(ErrorType.CONDITION_ERROR, NO_OUTGOING_FLOW_CHOSEN_ERROR);
-      return false;
+      return;
     }
 
     deferSequenceFlowTaken(context, value, sequenceFlow);
-    return true;
   }
 
   private DirectBuffer determinePayload(

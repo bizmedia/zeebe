@@ -52,7 +52,7 @@ public class ElementCompletedHandlerTest extends ElementHandlerTestCase<Executab
     context.setElementInstance(null);
 
     // when - then
-    assertThat(handler.shouldHandleState(context)).isFalse();
+    assertThat(handler.shouldHandle(context)).isFalse();
   }
 
   @Test
@@ -63,7 +63,7 @@ public class ElementCompletedHandlerTest extends ElementHandlerTestCase<Executab
     instance.setState(WorkflowInstanceIntent.ELEMENT_TERMINATED);
 
     // when - then
-    assertThat(handler.shouldHandleState(context)).isFalse();
+    assertThat(handler.shouldHandle(context)).isFalse();
   }
 
   @Test
@@ -73,7 +73,7 @@ public class ElementCompletedHandlerTest extends ElementHandlerTestCase<Executab
     createAndSetContextElementInstance(WorkflowInstanceIntent.ELEMENT_COMPLETED, flowScope);
 
     // when - then
-    assertThat(handler.shouldHandleState(context)).isFalse();
+    assertThat(handler.shouldHandle(context)).isFalse();
   }
 
   @Test
@@ -82,7 +82,7 @@ public class ElementCompletedHandlerTest extends ElementHandlerTestCase<Executab
     createAndSetContextElementInstance(WorkflowInstanceIntent.ELEMENT_COMPLETED);
 
     // when - then
-    assertThat(handler.shouldHandleState(context)).isTrue();
+    assertThat(handler.shouldHandle(context)).isTrue();
   }
 
   @Test

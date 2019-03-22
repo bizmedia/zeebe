@@ -25,21 +25,8 @@ import io.zeebe.protocol.impl.record.value.workflowinstance.WorkflowInstanceReco
 import io.zeebe.protocol.intent.WorkflowInstanceIntent;
 
 public class SequenceFlowTakenHandler<T extends ExecutableSequenceFlow> extends AbstractHandler<T> {
-  public SequenceFlowTakenHandler() {
-    super(null);
-  }
-
-  public SequenceFlowTakenHandler(WorkflowInstanceIntent nextState) {
-    super(nextState);
-  }
-
   @Override
-  protected boolean shouldHandleState(BpmnStepContext<T> context) {
-    return super.shouldHandleState(context) && isElementActive(context.getFlowScopeInstance());
-  }
-
-  @Override
-  protected boolean handleState(BpmnStepContext<T> context) {
+  protected void handleRecord(BpmnStepContext<T> context) {
     final ExecutableSequenceFlow sequenceFlow = context.getElement();
     final ExecutableFlowNode targetNode = sequenceFlow.getTarget();
 
@@ -47,7 +34,5 @@ public class SequenceFlowTakenHandler<T extends ExecutableSequenceFlow> extends 
     context
         .getOutput()
         .appendNewEvent(WorkflowInstanceIntent.ELEMENT_ACTIVATING, value, targetNode);
-
-    return true;
   }
 }

@@ -22,10 +22,10 @@ import io.zeebe.broker.workflow.model.BpmnStep;
 import io.zeebe.broker.workflow.model.element.ExecutableFlowElement;
 import io.zeebe.broker.workflow.processor.handlers.activity.ActivityElementTerminatedHandler;
 import io.zeebe.broker.workflow.processor.handlers.activity.ActivityEventOccurredHandler;
+import io.zeebe.broker.workflow.processor.handlers.catchevent.CatchEventEventOccurredHandler;
 import io.zeebe.broker.workflow.processor.handlers.catchevent.CatchEventSupplierElementActivatingHandler;
 import io.zeebe.broker.workflow.processor.handlers.catchevent.CatchEventSupplierElementCompletingHandler;
 import io.zeebe.broker.workflow.processor.handlers.catchevent.CatchEventSupplierElementTerminatingHandler;
-import io.zeebe.broker.workflow.processor.handlers.catchevent.CatchEventSupplierEventOccurredHandler;
 import io.zeebe.broker.workflow.processor.handlers.catchevent.IntermediateCatchEventElementActivatedHandler;
 import io.zeebe.broker.workflow.processor.handlers.catchevent.StartEventEventOccurredHandler;
 import io.zeebe.broker.workflow.processor.handlers.container.ContainerElementActivatedHandler;
@@ -108,8 +108,7 @@ public class BpmnStepHandlers {
         BpmnStep.INTERMEDIATE_CATCH_EVENT_ELEMENT_ACTIVATED,
         new IntermediateCatchEventElementActivatedHandler<>());
     stepHandlers.put(
-        BpmnStep.INTERMEDIATE_CATCH_EVENT_EVENT_OCCURRED,
-        new CatchEventSupplierEventOccurredHandler<>());
+        BpmnStep.INTERMEDIATE_CATCH_EVENT_EVENT_OCCURRED, new CatchEventEventOccurredHandler<>());
     stepHandlers.put(
         BpmnStep.INTERMEDIATE_CATCH_EVENT_ELEMENT_COMPLETING,
         new CatchEventSupplierElementCompletingHandler<>());

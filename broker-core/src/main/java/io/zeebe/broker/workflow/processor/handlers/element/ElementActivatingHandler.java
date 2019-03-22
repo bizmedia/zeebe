@@ -20,6 +20,7 @@ package io.zeebe.broker.workflow.processor.handlers.element;
 import io.zeebe.broker.workflow.model.element.ExecutableFlowNode;
 import io.zeebe.broker.workflow.processor.BpmnStepContext;
 import io.zeebe.broker.workflow.processor.handlers.AbstractHandler;
+import io.zeebe.broker.workflow.processor.handlers.ElementStateHandler;
 import io.zeebe.broker.workflow.processor.handlers.IOMappingHelper;
 import io.zeebe.msgpack.mapping.MappingException;
 import io.zeebe.protocol.ErrorType;
@@ -30,32 +31,27 @@ import io.zeebe.protocol.intent.WorkflowInstanceIntent;
  *
  * @param <T>
  */
-public class ElementActivatingHandler<T extends ExecutableFlowNode> extends AbstractHandler<T> {
+public class ElementActivatingHandler<T extends ExecutableFlowNode> extends AbstractHandler<T>
+    implements ElementStateHandler<T> {
   private final IOMappingHelper ioMappingHelper;
 
   public ElementActivatingHandler() {
-    this(WorkflowInstanceIntent.ELEMENT_ACTIVATED);
+    this(new IOMappingHelper());
   }
 
-  public ElementActivatingHandler(WorkflowInstanceIntent nextState) {
-    this(nextState, new IOMappingHelper());
-  }
-
-  public ElementActivatingHandler(
-      WorkflowInstanceIntent nextState, IOMappingHelper ioMappingHelper) {
-    super(nextState);
+  public ElementActivatingHandler(IOMappingHelper ioMappingHelper) {
     this.ioMappingHelper = ioMappingHelper;
   }
 
   @Override
-  protected boolean shouldHandleState(BpmnStepContext<T> context) {
-    return super.shouldHandleState(context)
-        && isStateSameAsElementState(context)
-        && (isRootScope(context) || isElementActive(context.getFlowScopeInstance()));
+  protected void handleRecord(BpmnStepContext<T> context) {
+    if (handleState(context)) {
+      transitionTo(context, WorkflowInstanceIntent.ELEMENT_ACTIVATED);
+    }
   }
 
   @Override
-  protected boolean handleState(BpmnStepContext<T> context) {
+  public boolean handleState(BpmnStepContext<T> context) {
     try {
       ioMappingHelper.applyInputMappings(context);
       return true;

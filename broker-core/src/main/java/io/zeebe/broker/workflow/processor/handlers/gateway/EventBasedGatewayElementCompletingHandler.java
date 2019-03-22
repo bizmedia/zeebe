@@ -19,32 +19,27 @@ package io.zeebe.broker.workflow.processor.handlers.gateway;
 
 import io.zeebe.broker.workflow.model.element.ExecutableEventBasedGateway;
 import io.zeebe.broker.workflow.processor.BpmnStepContext;
-import io.zeebe.broker.workflow.processor.handlers.IOMappingHelper;
-import io.zeebe.broker.workflow.processor.handlers.element.ElementCompletingHandler;
+import io.zeebe.broker.workflow.processor.handlers.AbstractHandler;
+import io.zeebe.broker.workflow.processor.handlers.ElementStateHandler;
 import io.zeebe.protocol.intent.WorkflowInstanceIntent;
 
 public class EventBasedGatewayElementCompletingHandler<T extends ExecutableEventBasedGateway>
-    extends ElementCompletingHandler<T> {
-  public EventBasedGatewayElementCompletingHandler() {
-    super();
-  }
-
-  public EventBasedGatewayElementCompletingHandler(IOMappingHelper ioMappingHelper) {
-    super(ioMappingHelper);
-  }
+    extends AbstractHandler<T> {
+  private final ElementStateHandler<T> elementCompletingHandler;
+  private final ElementStateHandler<T> catchEventSupplierElementCompletingHandler;
 
   public EventBasedGatewayElementCompletingHandler(
-      WorkflowInstanceIntent nextState, IOMappingHelper ioMappingHelper) {
-    super(nextState, ioMappingHelper);
+      ElementStateHandler<T> elementCompletingHandler,
+      ElementStateHandler<T> catchEventSupplierElementCompletingHandler) {
+    this.elementCompletingHandler = elementCompletingHandler;
+    this.catchEventSupplierElementCompletingHandler = catchEventSupplierElementCompletingHandler;
   }
 
   @Override
-  protected boolean handleState(BpmnStepContext<T> context) {
-    if (super.handleState(context)) {
-      context.getCatchEventBehavior().unsubscribeFromEvents(context.getRecord().getKey(), context);
-      return true;
+  protected void handleRecord(BpmnStepContext<T> context) {
+    if (elementCompletingHandler.handleState(context)
+        && catchEventSupplierElementCompletingHandler.handleState(context)) {
+      transitionTo(context, WorkflowInstanceIntent.ELEMENT_COMPLETED);
     }
-
-    return false;
   }
 }

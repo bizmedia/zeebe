@@ -19,29 +19,16 @@ package io.zeebe.broker.workflow.processor.handlers.catchevent;
 
 import io.zeebe.broker.workflow.model.element.ExecutableCatchEventElement;
 import io.zeebe.broker.workflow.processor.BpmnStepContext;
-import io.zeebe.broker.workflow.processor.handlers.element.ElementActivatedHandler;
+import io.zeebe.broker.workflow.processor.handlers.AbstractHandler;
 import io.zeebe.protocol.intent.WorkflowInstanceIntent;
 
 public class IntermediateCatchEventElementActivatedHandler<T extends ExecutableCatchEventElement>
-    extends ElementActivatedHandler<T> {
-  public IntermediateCatchEventElementActivatedHandler() {
-    this(null);
-  }
-
-  public IntermediateCatchEventElementActivatedHandler(WorkflowInstanceIntent nextState) {
-    super(nextState);
-  }
+    extends AbstractHandler<T> {
 
   @Override
-  protected boolean handleState(BpmnStepContext<T> context) {
-    if (super.handleState(context)) {
-      if (context.getElement().isNone()) {
-        transitionTo(context, WorkflowInstanceIntent.ELEMENT_COMPLETING);
-      }
-
-      return true;
+  protected void handleRecord(BpmnStepContext<T> context) {
+    if (context.getElement().isNone()) {
+      transitionTo(context, WorkflowInstanceIntent.ELEMENT_COMPLETING);
     }
-
-    return false;
   }
 }

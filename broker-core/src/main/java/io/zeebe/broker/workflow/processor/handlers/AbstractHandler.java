@@ -27,17 +27,6 @@ import io.zeebe.protocol.intent.WorkflowInstanceIntent;
 
 public abstract class AbstractHandler<T extends ExecutableFlowElement>
     implements BpmnStepHandler<T> {
-  private final WorkflowInstanceIntent nextState;
-
-  /**
-   * @param nextState the next state in the lifecycle; if one is given, will immediately move on to
-   *     this state if successfully handled, otherwise will not. Asynchronous handlers should thus
-   *     pass null here.
-   */
-  public AbstractHandler(WorkflowInstanceIntent nextState) {
-    this.nextState = nextState;
-  }
-
   /**
    * Delegates handling the state logic to subclasses, and moves to the next state iff there is a
    * next state to move to and it is a synchronous handler.
@@ -46,19 +35,24 @@ public abstract class AbstractHandler<T extends ExecutableFlowElement>
    */
   @Override
   public void handle(BpmnStepContext<T> context) {
-    if (shouldHandleState(context)) {
-      final boolean handled = handleState(context);
-
-      if (handled && shouldTransition()) {
-        transitionToNext(context);
-      }
-    } else {
+    if (!shouldHandle(context)) {
       Loggers.WORKFLOW_PROCESSOR_LOGGER.debug(
           "Skipping record {} due to step guard; in-memory element is {}",
           context.getRecord(),
           context.getElementInstance());
+      return;
     }
+
+    handleRecord(context);
   }
+
+  /**
+   * Called when the handler is the concrete, specialized handler for the current record. To compose
+   * handlers together, {@link AbstractHandler#handleState(BpmnStepContext)} should be called.
+   *
+   * @param context current step context
+   */
+  protected abstract void handleRecord(BpmnStepContext<T> context);
 
   /**
    * To be overridden by subclasses.
@@ -66,13 +60,38 @@ public abstract class AbstractHandler<T extends ExecutableFlowElement>
    * @param context current step context
    * @return true if ready successful, false otherwise
    */
-  protected abstract boolean handleState(BpmnStepContext<T> context);
-
-  protected boolean shouldHandleState(BpmnStepContext<T> context) {
+  protected boolean handleState(BpmnStepContext<T> context) {
     return true;
   }
 
-  protected boolean isRootScope(BpmnStepContext<T> context) {
+  /**
+   * Describes guard clauses for the current step.
+   *
+   * @param context current step context
+   * @return true if the event should be processed, false otherwise
+   */
+  protected boolean shouldHandle(BpmnStepContext<T> context) {
+    switch (context.getState()) {
+      case SEQUENCE_FLOW_TAKEN:
+        return isElementActive(context.getFlowScopeInstance());
+      case ELEMENT_ACTIVATING:
+      case ELEMENT_ACTIVATED:
+      case ELEMENT_COMPLETING:
+      case ELEMENT_COMPLETED:
+        return isStateSameAsElementState(context)
+            && (isRootScope(context) || isElementActive(context.getFlowScopeInstance()));
+      case ELEMENT_TERMINATING:
+      case ELEMENT_TERMINATED:
+        return isStateSameAsElementState(context);
+      case EVENT_OCCURRED:
+        return (context.getRecord().getValue().getWorkflowInstanceKey() == -1
+            || isElementActive(context.getElementInstance()));
+      default:
+        return true;
+    }
+  }
+
+  private boolean isRootScope(BpmnStepContext<T> context) {
     return context.getRecord().getValue().getFlowScopeKey() == -1;
   }
 
@@ -82,25 +101,17 @@ public abstract class AbstractHandler<T extends ExecutableFlowElement>
    * ELEMENT_ACTIVATING and ELEMENT_ACTIVATED in the same step will transition the element to
    * ACTIVATED, and we shouldn't process the ELEMENT_ACTIVATING in that case).
    */
-  protected boolean isStateSameAsElementState(BpmnStepContext<T> context) {
+  private boolean isStateSameAsElementState(BpmnStepContext<T> context) {
     return context.getElementInstance() != null
         && context.getState() == context.getElementInstance().getState();
   }
 
-  protected boolean isElementActive(ElementInstance instance) {
+  private boolean isElementActive(ElementInstance instance) {
     return instance != null && instance.isActive();
   }
 
   protected boolean isElementTerminating(ElementInstance instance) {
     return instance != null && instance.isTerminating();
-  }
-
-  protected boolean shouldTransition() {
-    return nextState != null;
-  }
-
-  protected void transitionToNext(BpmnStepContext<T> context) {
-    this.transitionTo(context, nextState);
   }
 
   protected void transitionTo(BpmnStepContext<T> context, WorkflowInstanceIntent nextState) {

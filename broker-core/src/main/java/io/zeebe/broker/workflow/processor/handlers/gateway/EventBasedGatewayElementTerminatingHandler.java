@@ -17,30 +17,29 @@
  */
 package io.zeebe.broker.workflow.processor.handlers.gateway;
 
-import io.zeebe.broker.incident.processor.IncidentState;
 import io.zeebe.broker.workflow.model.element.ExecutableEventBasedGateway;
 import io.zeebe.broker.workflow.processor.BpmnStepContext;
-import io.zeebe.broker.workflow.processor.handlers.element.ElementTerminatingHandler;
+import io.zeebe.broker.workflow.processor.handlers.AbstractHandler;
+import io.zeebe.broker.workflow.processor.handlers.ElementStateHandler;
 import io.zeebe.protocol.intent.WorkflowInstanceIntent;
 
 public class EventBasedGatewayElementTerminatingHandler<T extends ExecutableEventBasedGateway>
-    extends ElementTerminatingHandler<T> {
-  public EventBasedGatewayElementTerminatingHandler(IncidentState incidentState) {
-    super(incidentState);
-  }
+    extends AbstractHandler<T> {
+  private final ElementStateHandler<T> elementTerminatingHandler;
+  private final ElementStateHandler<T> catchEventSupplierTerminatingHandler;
 
   public EventBasedGatewayElementTerminatingHandler(
-      WorkflowInstanceIntent nextState, IncidentState incidentState) {
-    super(nextState, incidentState);
+      ElementStateHandler<T> elementTerminatingHandler,
+      ElementStateHandler<T> catchEventSupplierTerminatingHandler) {
+    this.elementTerminatingHandler = elementTerminatingHandler;
+    this.catchEventSupplierTerminatingHandler = catchEventSupplierTerminatingHandler;
   }
 
   @Override
-  protected boolean handleState(BpmnStepContext<T> context) {
-    if (super.handleState(context)) {
-      context.getCatchEventBehavior().unsubscribeFromEvents(context.getRecord().getKey(), context);
-      return true;
+  protected void handleRecord(BpmnStepContext<T> context) {
+    if (elementTerminatingHandler.handleState(context)
+        && catchEventSupplierTerminatingHandler.handleState(context)) {
+      transitionTo(context, WorkflowInstanceIntent.ELEMENT_TERMINATED);
     }
-
-    return false;
   }
 }

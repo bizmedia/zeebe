@@ -20,34 +20,18 @@ package io.zeebe.broker.workflow.processor.handlers.container;
 import io.zeebe.broker.workflow.model.element.ExecutableCatchEventElement;
 import io.zeebe.broker.workflow.model.element.ExecutableFlowElementContainer;
 import io.zeebe.broker.workflow.processor.BpmnStepContext;
-import io.zeebe.broker.workflow.processor.handlers.element.ElementActivatedHandler;
+import io.zeebe.broker.workflow.processor.handlers.ElementStateHandler;
 import io.zeebe.broker.workflow.state.IndexedRecord;
 import io.zeebe.broker.workflow.state.StoredRecord.Purpose;
-import io.zeebe.broker.workflow.state.WorkflowState;
 import io.zeebe.protocol.impl.record.value.workflowinstance.WorkflowInstanceRecord;
 import io.zeebe.protocol.intent.WorkflowInstanceIntent;
 import java.util.List;
 
 public class ContainerElementActivatedHandler<T extends ExecutableFlowElementContainer>
-    extends ElementActivatedHandler<T> {
-  private final WorkflowState workflowState;
-
-  public ContainerElementActivatedHandler(WorkflowState workflowState) {
-    this(null, workflowState);
-  }
-
-  public ContainerElementActivatedHandler(
-      WorkflowInstanceIntent nextState, WorkflowState workflowState) {
-    super(nextState);
-    this.workflowState = workflowState;
-  }
+    implements ElementStateHandler<T> {
 
   @Override
-  protected boolean handleState(BpmnStepContext<T> context) {
-    if (!super.handleState(context)) {
-      return false;
-    }
-
+  public boolean handleState(BpmnStepContext<T> context) {
     final ExecutableFlowElementContainer element = context.getElement();
     final ExecutableCatchEventElement firstStartEvent = element.getStartEvents().get(0);
 
@@ -95,7 +79,7 @@ public class ContainerElementActivatedHandler<T extends ExecutableFlowElementCon
         : "should only have one deferred start event per workflow instance";
 
     final IndexedRecord deferredRecord = deferredRecords.get(0);
-    workflowState
+    context
         .getElementInstanceState()
         .removeStoredRecord(wfInstanceKey, deferredRecord.getKey(), Purpose.DEFERRED);
     return deferredRecord;

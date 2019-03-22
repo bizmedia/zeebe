@@ -18,26 +18,26 @@
 package io.zeebe.broker.workflow.processor.handlers.catchevent;
 
 import io.zeebe.broker.Loggers;
-import io.zeebe.broker.workflow.model.element.ExecutableCatchEventSupplier;
+import io.zeebe.broker.workflow.model.element.ExecutableCatchEvent;
 import io.zeebe.broker.workflow.processor.BpmnStepContext;
+import io.zeebe.broker.workflow.processor.handlers.ElementStateHandler;
 import io.zeebe.broker.workflow.processor.handlers.element.EventOccurredHandler;
 import io.zeebe.broker.workflow.state.EventTrigger;
 import io.zeebe.protocol.intent.WorkflowInstanceIntent;
 
-public class CatchEventSupplierEventOccurredHandler<T extends ExecutableCatchEventSupplier>
-    extends EventOccurredHandler<T> {
-  public CatchEventSupplierEventOccurredHandler() {
-    this(WorkflowInstanceIntent.ELEMENT_COMPLETING);
-  }
+public class CatchEventEventOccurredHandler<T extends ExecutableCatchEvent>
+    extends EventOccurredHandler<T> implements ElementStateHandler<T> {
 
-  public CatchEventSupplierEventOccurredHandler(WorkflowInstanceIntent nextState) {
-    super(nextState);
+  @Override
+  protected void handleRecord(BpmnStepContext<T> context) {
+    if (handleState(context)) {
+      transitionTo(context, WorkflowInstanceIntent.ELEMENT_COMPLETING);
+    }
   }
 
   @Override
-  protected boolean handleState(BpmnStepContext<T> context) {
+  public boolean handleState(BpmnStepContext<T> context) {
     final EventTrigger event = getTriggeredEvent(context, context.getRecord().getKey());
-
     if (event == null) {
       Loggers.WORKFLOW_PROCESSOR_LOGGER.debug(
           "Processing EVENT_OCCURRED but no event trigger found for element {}",

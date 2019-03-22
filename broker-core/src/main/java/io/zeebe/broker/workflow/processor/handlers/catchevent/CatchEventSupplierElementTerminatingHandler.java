@@ -17,31 +17,31 @@
  */
 package io.zeebe.broker.workflow.processor.handlers.catchevent;
 
-import io.zeebe.broker.incident.processor.IncidentState;
 import io.zeebe.broker.workflow.model.element.ExecutableCatchEventSupplier;
 import io.zeebe.broker.workflow.processor.BpmnStepContext;
-import io.zeebe.broker.workflow.processor.handlers.element.ElementTerminatingHandler;
+import io.zeebe.broker.workflow.processor.handlers.AbstractHandler;
+import io.zeebe.broker.workflow.processor.handlers.ElementStateHandler;
 import io.zeebe.protocol.intent.WorkflowInstanceIntent;
 
 public class CatchEventSupplierElementTerminatingHandler<T extends ExecutableCatchEventSupplier>
-    extends ElementTerminatingHandler<T> {
-
-  public CatchEventSupplierElementTerminatingHandler(IncidentState incidentState) {
-    super(incidentState);
-  }
+    extends AbstractHandler<T> implements ElementStateHandler<T> {
+  private final ElementStateHandler<T> elementTerminatingHandler;
 
   public CatchEventSupplierElementTerminatingHandler(
-      WorkflowInstanceIntent nextState, IncidentState incidentState) {
-    super(nextState, incidentState);
+      ElementStateHandler<T> elementTerminatingHandler) {
+    this.elementTerminatingHandler = elementTerminatingHandler;
   }
 
   @Override
-  protected boolean handleState(BpmnStepContext<T> context) {
-    if (super.handleState(context)) {
-      context.getCatchEventBehavior().unsubscribeFromEvents(context.getRecord().getKey(), context);
-      return true;
+  protected void handleRecord(BpmnStepContext<T> context) {
+    if (elementTerminatingHandler.handleState(context) && handleState(context)) {
+      transitionTo(context, WorkflowInstanceIntent.ELEMENT_TERMINATED);
     }
+  }
 
-    return false;
+  @Override
+  public boolean handleState(BpmnStepContext<T> context) {
+    context.getCatchEventBehavior().unsubscribeFromEvents(context.getRecord().getKey(), context);
+    return true;
   }
 }

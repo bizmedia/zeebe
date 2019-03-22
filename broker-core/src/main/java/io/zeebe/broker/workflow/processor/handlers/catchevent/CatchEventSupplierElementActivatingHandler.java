@@ -19,25 +19,31 @@ package io.zeebe.broker.workflow.processor.handlers.catchevent;
 
 import io.zeebe.broker.workflow.model.element.ExecutableCatchEventSupplier;
 import io.zeebe.broker.workflow.processor.BpmnStepContext;
-import io.zeebe.broker.workflow.processor.handlers.IOMappingHelper;
+import io.zeebe.broker.workflow.processor.handlers.AbstractHandler;
+import io.zeebe.broker.workflow.processor.handlers.ElementStateHandler;
 import io.zeebe.broker.workflow.processor.handlers.element.ElementActivatingHandler;
 import io.zeebe.broker.workflow.processor.message.MessageCorrelationKeyException;
 import io.zeebe.protocol.ErrorType;
 import io.zeebe.protocol.intent.WorkflowInstanceIntent;
 
 public class CatchEventSupplierElementActivatingHandler<T extends ExecutableCatchEventSupplier>
-    extends ElementActivatingHandler<T> {
-  public CatchEventSupplierElementActivatingHandler() {
-    super();
-  }
+    extends AbstractHandler<T> {
+  private final ElementStateHandler<T> elementActivatingHandler;
 
-  public CatchEventSupplierElementActivatingHandler(WorkflowInstanceIntent nextState) {
-    super(nextState);
+  public CatchEventSupplierElementActivatingHandler() {
+    this(new ElementActivatingHandler<>());
   }
 
   public CatchEventSupplierElementActivatingHandler(
-      WorkflowInstanceIntent nextState, IOMappingHelper ioMappingHelper) {
-    super(nextState, ioMappingHelper);
+      ElementStateHandler<T> elementActivatingHandler) {
+    this.elementActivatingHandler = elementActivatingHandler;
+  }
+
+  @Override
+  protected void handleRecord(BpmnStepContext<T> context) {
+    if (this.elementActivatingHandler.handleState(context) && this.handleState(context)) {
+      transitionTo(context, WorkflowInstanceIntent.ELEMENT_ACTIVATED);
+    }
   }
 
   @Override

@@ -30,21 +30,9 @@ import java.util.List;
 
 public class ParallelMergeSequenceFlowTaken<T extends ExecutableSequenceFlow>
     extends AbstractHandler<T> {
-  public ParallelMergeSequenceFlowTaken() {
-    super(null);
-  }
-
-  public ParallelMergeSequenceFlowTaken(WorkflowInstanceIntent nextState) {
-    super(nextState);
-  }
 
   @Override
-  protected boolean shouldHandleState(BpmnStepContext<T> context) {
-    return super.shouldHandleState(context) && isElementActive(context.getFlowScopeInstance());
-  }
-
-  @Override
-  protected boolean handleState(BpmnStepContext<T> context) {
+  protected void handleRecord(BpmnStepContext<T> context) {
     final ElementInstance scopeInstance = context.getFlowScopeInstance();
     final EventOutput eventOutput = context.getOutput();
     final ExecutableSequenceFlow sequenceFlow = context.getElement();
@@ -68,8 +56,6 @@ public class ParallelMergeSequenceFlowTaken<T extends ExecutableSequenceFlow>
           .appendNewEvent(WorkflowInstanceIntent.ELEMENT_ACTIVATING, context.getValue(), gateway);
       context.getFlowScopeInstance().spawnToken();
     }
-
-    return true;
   }
 
   /** @return the records that can be merged */
