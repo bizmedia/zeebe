@@ -30,32 +30,8 @@ public interface ErrorRecordValue extends RecordValue {
   long getErrorEventPosition();
 
   /**
-   * @return the process id, which is related to the failed event. If the event is not workflow
-   *     instance related, then this will return -1
-   */
-  String getBpmnProcessId();
-
-  /**
    * @return the workflow instance key, which is related to the failed event. If the event is not
    *     workflow instance related, then this will return -1
    */
   long getWorkflowInstanceKey();
-
-  /**
-   * @return the workflow key, which is related to the failed event. If the event is not workflow
-   *     instance related, then this will return -1
-   */
-  long getWorkflowKey();
-
-  /**
-   * @return the element id, which is related to the failed event. If the event is not workflow
-   *     instance related, then this will return -1
-   */
-  String getElementId();
-
-  /**
-   * @return the element instance key, which is related to the failed event. If the event is not
-   *     workflow instance related, then this will return -1
-   */
-  long getElementInstanceKey();
 }

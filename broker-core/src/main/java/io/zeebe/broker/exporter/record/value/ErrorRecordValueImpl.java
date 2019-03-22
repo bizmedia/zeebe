@@ -28,31 +28,19 @@ public class ErrorRecordValueImpl extends RecordValueImpl implements ErrorRecord
   private final String stacktrace;
   private final long errorEventPosition;
 
-  private final String bpmnProcessId;
   private final long workflowInstanceKey;
-  private final long workflowKey;
-  private final String elementId;
-  private final long elementInstanceKey;
 
   public ErrorRecordValueImpl(
       ExporterObjectMapper objectMapper,
       String exceptionMessage,
       String stacktrace,
       long errorEventPosition,
-      String bpmnProcessId,
-      long workflowInstanceKey,
-      long workflowKey,
-      String elementId,
-      long elementInstanceKey) {
+      long workflowInstanceKey) {
     super(objectMapper);
     this.exceptionMessage = exceptionMessage;
     this.stacktrace = stacktrace;
     this.errorEventPosition = errorEventPosition;
-    this.bpmnProcessId = bpmnProcessId;
     this.workflowInstanceKey = workflowInstanceKey;
-    this.workflowKey = workflowKey;
-    this.elementId = elementId;
-    this.elementInstanceKey = elementInstanceKey;
   }
 
   @Override
@@ -71,28 +59,8 @@ public class ErrorRecordValueImpl extends RecordValueImpl implements ErrorRecord
   }
 
   @Override
-  public String getBpmnProcessId() {
-    return bpmnProcessId;
-  }
-
-  @Override
   public long getWorkflowInstanceKey() {
     return workflowInstanceKey;
-  }
-
-  @Override
-  public long getWorkflowKey() {
-    return workflowKey;
-  }
-
-  @Override
-  public String getElementId() {
-    return elementId;
-  }
-
-  @Override
-  public long getElementInstanceKey() {
-    return elementInstanceKey;
   }
 
   @Override
@@ -106,25 +74,13 @@ public class ErrorRecordValueImpl extends RecordValueImpl implements ErrorRecord
     final ErrorRecordValueImpl that = (ErrorRecordValueImpl) o;
     return errorEventPosition == that.errorEventPosition
         && workflowInstanceKey == that.workflowInstanceKey
-        && workflowKey == that.workflowKey
-        && elementInstanceKey == that.elementInstanceKey
         && Objects.equals(exceptionMessage, that.exceptionMessage)
-        && Objects.equals(stacktrace, that.stacktrace)
-        && Objects.equals(bpmnProcessId, that.bpmnProcessId)
-        && Objects.equals(elementId, that.elementId);
+        && Objects.equals(stacktrace, that.stacktrace);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(
-        exceptionMessage,
-        stacktrace,
-        errorEventPosition,
-        bpmnProcessId,
-        workflowInstanceKey,
-        workflowKey,
-        elementId,
-        elementInstanceKey);
+    return Objects.hash(exceptionMessage, stacktrace, errorEventPosition, workflowInstanceKey);
   }
 
   @Override
@@ -138,18 +94,8 @@ public class ErrorRecordValueImpl extends RecordValueImpl implements ErrorRecord
         + '\''
         + ", errorEventPosition="
         + errorEventPosition
-        + ", bpmnProcessId='"
-        + bpmnProcessId
-        + '\''
         + ", workflowInstanceKey="
         + workflowInstanceKey
-        + ", workflowKey="
-        + workflowKey
-        + ", elementId='"
-        + elementId
-        + '\''
-        + ", elementInstanceKey="
-        + elementInstanceKey
         + '}';
   }
 }

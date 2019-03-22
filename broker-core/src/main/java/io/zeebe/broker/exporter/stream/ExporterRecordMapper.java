@@ -412,11 +412,7 @@ public class ExporterRecordMapper {
         asString(record.getExceptionMessage()),
         asString(record.getStacktrace()),
         record.getErrorEventPosition(),
-        asString(record.getBpmnProcessId()),
-        record.getWorkflowInstanceKey(),
-        record.getWorkflowKey(),
-        asString(record.getElementId()),
-        record.getElementInstanceKey());
+        record.getWorkflowInstanceKey());
   }
 
   private byte[] asByteArray(final DirectBuffer buffer) {
