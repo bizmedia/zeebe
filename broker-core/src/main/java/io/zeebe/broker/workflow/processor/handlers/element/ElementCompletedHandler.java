@@ -47,11 +47,9 @@ public class ElementCompletedHandler<T extends ExecutableFlowNode>
   protected boolean handleState(BpmnStepContext<T> context) {
     // todo: move this to some catch event supplier handler
     // https://github.com/zeebe-io/zeebe/issues/1968
-    if (!isRootScope(context))
-    {
+    if (!isRootScope(context)) {
       publishDeferredRecords(context);
     }
-
 
     if (isLastActiveExecutionPathInScope(context)) {
       completeFlowScope(context);
