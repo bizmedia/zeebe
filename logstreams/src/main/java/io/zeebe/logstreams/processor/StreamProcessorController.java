@@ -145,22 +145,23 @@ public class StreamProcessorController extends Actor {
             .setShouldProcessNext(() -> isOpened() && !isSuspended())
             .setAbortCondition(this::isClosed)
             .build();
-
-    reProcessingStateMachine =
-        ReProcessingStateMachine.builder()
-            .setStreamProcessorContext(streamProcessorContext)
-            .setStreamProcessor(streamProcessor)
-            .setZeebeDb(zeebeDb)
-            .setAbortCondition(this::isClosed)
-            .build();
   }
 
   @Override
   protected void onActorStarted() {
     try {
       if (lastSourceEventPosition > snapshotPosition) {
-        final ActorFuture<Void> recoverFuture =
-            reProcessingStateMachine.startRecover(lastSourceEventPosition);
+
+        reProcessingStateMachine =
+            ReProcessingStateMachine.builder()
+                .setStreamProcessorContext(streamProcessorContext)
+                .setStreamProcessor(streamProcessor)
+                .setZeebeDb(zeebeDb)
+                .setLastSourceEventPosition(lastSourceEventPosition)
+                .setAbortCondition(this::isClosed)
+                .build();
+
+        final ActorFuture<Void> recoverFuture = reProcessingStateMachine.startRecover();
 
         actor.runOnCompletion(
             recoverFuture,

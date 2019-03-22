@@ -15,19 +15,20 @@
  */
 package io.zeebe.logstreams.processor;
 
+import io.zeebe.db.TransactionOperation;
 import io.zeebe.db.ZeebeDb;
 import io.zeebe.db.ZeebeDbTransaction;
 import io.zeebe.logstreams.impl.Loggers;
 import io.zeebe.logstreams.log.LogStreamReader;
 import io.zeebe.logstreams.log.LoggedEvent;
-import io.zeebe.util.exception.RecoverableException;
-import io.zeebe.util.retry.RecoverableRetryStrategy;
+import io.zeebe.util.retry.EndlessRetryStrategy;
 import io.zeebe.util.retry.RetryStrategy;
 import io.zeebe.util.sched.ActorControl;
 import io.zeebe.util.sched.future.ActorFuture;
 import io.zeebe.util.sched.future.CompletableActorFuture;
-import java.time.Duration;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.BooleanSupplier;
 import org.slf4j.Logger;
 
@@ -73,29 +74,18 @@ public final class ReProcessingStateMachine {
 
   private static final Logger LOG = Loggers.PROCESSOR_LOGGER;
 
-  private static final String ERROR_MESSAGE_ROLLBACK_ABORTED =
-      "Expected to roll back the current transaction for event '{}' successfully, but exception was thrown.";
-  private static final String ERROR_MESSAGE_UPDATE_STATE_FAILED =
-      "Expected to successfully update state for event '{}' with processor '{}', but caught an exception. Retry.";
   private static final String ERROR_MESSAGE_ON_EVENT_FAILED_SKIP_EVENT =
       "Expected to find event processor for event '{}' with processor '{}', but caught an exception. Skip this event.";
-
   private static final String ERROR_MESSAGE_REPROCESSING_NO_SOURCE_EVENT =
       "Expected to find last source event position '%d', but last position was '%d'. Failed to reprocess on processor '%s'";
   private static final String ERROR_MESSAGE_REPROCESSING_NO_NEXT_EVENT =
       "Expected to find last source event position '%d', but found no next event. Failed to reprocess on processor '%s'";
-  private static final String ERROR_MESSAGE_REPROCESSING_FAILED_SKIP_EVENT =
-      "Expected to successfully reprocess event '{}' on processor '{}', but caught an exception.";
-  private static final String ERROR_MESSAGE_REPROCESSING_FAILED_RETRY_REPROCESSING =
-      "Expected to reprocess event '{}' successfully on stream processor '{}', but caught recoverable exception. Retry reprocessing.";
 
   private static final String LOG_STMT_REPROCESSING_FINISHED =
       "Processor {} finished reprocessing at event position {}";
 
-  private static final Duration PROCESSING_RETRY_DELAY = Duration.ofMillis(250);
-
-  public static ProcessingStateMachineBuilder builder() {
-    return new ProcessingStateMachineBuilder();
+  public static ReprocessingStateMachineBuilder builder() {
+    return new ReprocessingStateMachineBuilder();
   }
 
   private final ActorControl actor;
@@ -106,14 +96,18 @@ public final class ReProcessingStateMachine {
 
   private final ZeebeDb zeebeDb;
   private final RetryStrategy updateStateRetryStrategy;
+  private final RetryStrategy processRetryStrategy;
 
   private final BooleanSupplier abortCondition;
+  private final long lastSourceEventPosition;
+  private final Set<Long> blacklist = new HashSet<>();
 
   private ReProcessingStateMachine(
       StreamProcessorContext context,
       StreamProcessor streamProcessor,
       ZeebeDb zeebeDb,
-      BooleanSupplier abortCondition) {
+      BooleanSupplier abortCondition,
+      long lastSourceEventPosition) {
     this.actor = context.getActorControl();
     this.streamProcessorName = context.getName();
     this.eventFilter = context.getEventFilter();
@@ -121,50 +115,80 @@ public final class ReProcessingStateMachine {
 
     this.streamProcessor = streamProcessor;
     this.zeebeDb = zeebeDb;
-    this.updateStateRetryStrategy = new RecoverableRetryStrategy(actor);
+    this.updateStateRetryStrategy = new EndlessRetryStrategy(actor);
+    this.processRetryStrategy = new EndlessRetryStrategy(actor);
     this.abortCondition = abortCondition;
+    this.lastSourceEventPosition = lastSourceEventPosition;
   }
 
   // current iteration
-  private long lastSourceEventPosition;
   private ActorFuture<Void> recoveryFuture;
-
   private LoggedEvent currentEvent;
   private EventProcessor eventProcessor;
   private ZeebeDbTransaction zeebeDbTransaction;
 
-  ActorFuture<Void> startRecover(long lastSourceEventPosition) {
-    this.lastSourceEventPosition = lastSourceEventPosition;
+  ActorFuture<Void> startRecover() {
     recoveryFuture = new CompletableActorFuture<>();
+
+    final long startPosition = logStreamReader.getPosition();
+
+    LOG.info("Start scanning the logs for error events.");
+    scanLog();
+
+    logStreamReader.seek(startPosition);
     reprocessNextEvent();
+    blacklist.clear();
     return recoveryFuture;
+  }
+
+  private void scanLog() {
+    try {
+      readNextEvent();
+
+      final long errorPosition = streamProcessor.getFailedPosition(currentEvent);
+      if (errorPosition >= 0) {
+        LOG.info(
+            "Found error-prone event {}, will add position {} to the blacklist.",
+            currentEvent,
+            errorPosition);
+        blacklist.add(errorPosition);
+      }
+
+    } catch (final RuntimeException e) {
+      recoveryFuture.completeExceptionally(e);
+    }
+  }
+
+  private void readNextEvent() {
+    if (!logStreamReader.hasNext()) {
+      throw new IllegalStateException(
+          String.format(
+              ERROR_MESSAGE_REPROCESSING_NO_NEXT_EVENT,
+              lastSourceEventPosition,
+              streamProcessorName));
+    }
+
+    currentEvent = logStreamReader.next();
+    if (currentEvent.getPosition() > lastSourceEventPosition) {
+      throw new IllegalStateException(
+          String.format(
+              ERROR_MESSAGE_REPROCESSING_NO_SOURCE_EVENT,
+              lastSourceEventPosition,
+              currentEvent.getPosition(),
+              streamProcessorName));
+    }
   }
 
   private void reprocessNextEvent() {
     try {
-      if (!logStreamReader.hasNext()) {
-        throw new IllegalStateException(
-            String.format(
-                ERROR_MESSAGE_REPROCESSING_NO_NEXT_EVENT,
-                lastSourceEventPosition,
-                streamProcessorName));
-      }
-
-      currentEvent = logStreamReader.next();
-      if (currentEvent.getPosition() > lastSourceEventPosition) {
-        throw new IllegalStateException(
-            String.format(
-                ERROR_MESSAGE_REPROCESSING_NO_SOURCE_EVENT,
-                lastSourceEventPosition,
-                currentEvent.getPosition(),
-                streamProcessorName));
-      }
+      readNextEvent();
 
       if (eventFilter == null || eventFilter.applies(currentEvent)) {
         reprocessEvent(currentEvent);
       } else {
         onRecordReprocessed(currentEvent);
       }
+
     } catch (final RuntimeException e) {
       recoveryFuture.completeExceptionally(e);
     }
@@ -182,24 +206,61 @@ public final class ReProcessingStateMachine {
       return;
     }
 
-    try {
-      // don't execute side effects or write events
-      zeebeDbTransaction = zeebeDb.transaction();
-      zeebeDbTransaction.run(eventProcessor::processEvent);
-      updateState();
-    } catch (final RecoverableException recoverableException) {
-      // recoverable
-      LOG.error(
-          ERROR_MESSAGE_REPROCESSING_FAILED_RETRY_REPROCESSING,
-          currentEvent,
-          streamProcessorName,
-          recoverableException);
-      actor.runDelayed(PROCESSING_RETRY_DELAY, () -> reprocessEvent(currentEvent));
-      return;
-    } catch (final Exception e) {
-      LOG.error(ERROR_MESSAGE_REPROCESSING_FAILED_SKIP_EVENT, currentEvent, streamProcessorName, e);
-      onProcessingError(e, this::updateState);
+    processUntilDone(currentEvent);
+  }
+
+  private void processUntilDone(LoggedEvent currentEvent) {
+    final TransactionOperation operationOnProcessing;
+    if (blacklist.contains(currentEvent.getPosition())) {
+      LOG.info(
+          "Event {} failed on processing last time, will call #onError to update workflow instance blacklist.",
+          currentEvent);
+      operationOnProcessing = () -> eventProcessor.onError(new Exception());
+    } else {
+      operationOnProcessing = eventProcessor::processEvent;
     }
+
+    final ActorFuture<Boolean> resultFuture =
+        processRetryStrategy.runWithRetry(
+            () -> {
+              zeebeDbTransaction = zeebeDb.transaction();
+              zeebeDbTransaction.run(operationOnProcessing);
+              return true;
+            },
+            () -> {
+              // is checked on exception
+              if (zeebeDbTransaction != null)
+              {
+                zeebeDbTransaction.rollback();
+              }
+              return abortCondition.getAsBoolean();
+            });
+
+    actor.runOnCompletion(
+        resultFuture,
+        (v, t) -> {
+          // processing should be retried endless until it worked
+          assert t == null : "On reprocessing there shouldn't be any exception thrown.";
+          updateStateUntilDone();
+        });
+  }
+
+  private void updateStateUntilDone() {
+    final ActorFuture<Boolean> retryFuture =
+        updateStateRetryStrategy.runWithRetry(
+            () -> {
+              zeebeDbTransaction.commit();
+              return true;
+            },
+            abortCondition);
+
+    actor.runOnCompletion(
+        retryFuture,
+        (bool, throwable) -> {
+          // update state should be retried endless until it worked
+          assert throwable == null : "On reprocessing there shouldn't be any exception thrown.";
+          onRecordReprocessed(currentEvent);
+        });
   }
 
   private void onRecordReprocessed(final LoggedEvent currentEvent) {
@@ -215,78 +276,39 @@ public final class ReProcessingStateMachine {
     recoveryFuture.complete(null);
   }
 
-  private void onProcessingError(Throwable t, Runnable nextStep) {
-    final ActorFuture<Boolean> retryFuture =
-        updateStateRetryStrategy.runWithRetry(
-            () -> {
-              zeebeDbTransaction.rollback();
-              return true;
-            },
-            abortCondition);
-
-    actor.runOnCompletion(
-        retryFuture,
-        (bool, throwable) -> {
-          if (throwable != null) {
-            LOG.error(ERROR_MESSAGE_ROLLBACK_ABORTED, currentEvent, throwable);
-          }
-          try {
-            zeebeDbTransaction = zeebeDb.transaction();
-            zeebeDbTransaction.run(() -> eventProcessor.onError(t));
-            nextStep.run();
-          } catch (Exception ex) {
-            onProcessingError(ex, nextStep);
-          }
-        });
-  }
-
-  private void updateState() {
-    final ActorFuture<Boolean> retryFuture =
-        updateStateRetryStrategy.runWithRetry(
-            () -> {
-              zeebeDbTransaction.commit();
-              return true;
-            },
-            abortCondition);
-
-    actor.runOnCompletion(
-        retryFuture,
-        (bool, throwable) -> {
-          if (throwable != null) {
-            LOG.error(
-                ERROR_MESSAGE_UPDATE_STATE_FAILED, currentEvent, streamProcessorName, throwable);
-            onProcessingError(throwable, this::updateState);
-          } else {
-            onRecordReprocessed(currentEvent);
-          }
-        });
-  }
-
-  public static class ProcessingStateMachineBuilder {
+  public static class ReprocessingStateMachineBuilder {
 
     private StreamProcessor streamProcessor;
 
     private StreamProcessorContext streamProcessorContext;
     private ZeebeDb zeebeDb;
     private BooleanSupplier abortCondition;
+    private long lastSourceEventPosition;
 
-    public ProcessingStateMachineBuilder setStreamProcessor(StreamProcessor streamProcessor) {
+    public ReprocessingStateMachineBuilder setStreamProcessor(StreamProcessor streamProcessor) {
       this.streamProcessor = streamProcessor;
       return this;
     }
 
-    public ProcessingStateMachineBuilder setStreamProcessorContext(StreamProcessorContext context) {
+    public ReprocessingStateMachineBuilder setStreamProcessorContext(
+        StreamProcessorContext context) {
       this.streamProcessorContext = context;
       return this;
     }
 
-    public ProcessingStateMachineBuilder setZeebeDb(ZeebeDb zeebeDb) {
+    public ReprocessingStateMachineBuilder setZeebeDb(ZeebeDb zeebeDb) {
       this.zeebeDb = zeebeDb;
       return this;
     }
 
-    public ProcessingStateMachineBuilder setAbortCondition(BooleanSupplier abortCondition) {
+    public ReprocessingStateMachineBuilder setAbortCondition(BooleanSupplier abortCondition) {
       this.abortCondition = abortCondition;
+      return this;
+    }
+
+    public ReprocessingStateMachineBuilder setLastSourceEventPosition(
+        long lastSourceEventPosition) {
+      this.lastSourceEventPosition = lastSourceEventPosition;
       return this;
     }
 
@@ -296,7 +318,11 @@ public final class ReProcessingStateMachine {
       Objects.requireNonNull(zeebeDb);
       Objects.requireNonNull(abortCondition);
       return new ReProcessingStateMachine(
-          streamProcessorContext, streamProcessor, zeebeDb, abortCondition);
+          streamProcessorContext,
+          streamProcessor,
+          zeebeDb,
+          abortCondition,
+          lastSourceEventPosition);
     }
   }
 }

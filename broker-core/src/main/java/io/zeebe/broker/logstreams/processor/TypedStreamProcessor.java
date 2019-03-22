@@ -53,6 +53,7 @@ public class TypedStreamProcessor implements StreamProcessor {
   protected final List<StreamProcessorLifecycleAware> lifecycleListeners = new ArrayList<>();
   protected final ZeebeState zeebeState;
 
+  private final ErrorRecord errorRecord = new ErrorRecord();
   protected final RecordMetadata metadata = new RecordMetadata();
   protected final EnumMap<ValueType, Class<? extends UnpackedObject>> eventRegistry;
   protected final EnumMap<ValueType, UnpackedObject> eventCache;
@@ -107,6 +108,18 @@ public class TypedStreamProcessor implements StreamProcessor {
   @Override
   public void onClose() {
     lifecycleListeners.forEach(e -> e.onClose());
+  }
+
+  @Override
+  public long getFailedPosition(LoggedEvent currentEvent) {
+    metadata.reset();
+    currentEvent.readMetadata(metadata);
+
+    if (metadata.getValueType() == ValueType.ERROR) {
+      currentEvent.readValue(errorRecord);
+      return errorRecord.getErrorEventPosition();
+    }
+    return -1;
   }
 
   @Override

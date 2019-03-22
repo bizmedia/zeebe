@@ -40,7 +40,6 @@ import io.zeebe.logstreams.state.StateSnapshotController;
 import io.zeebe.logstreams.state.StateStorage;
 import io.zeebe.logstreams.util.LogStreamRule;
 import io.zeebe.logstreams.util.LogStreamWriterRule;
-import io.zeebe.util.exception.RecoverableException;
 import io.zeebe.util.sched.future.ActorFuture;
 import java.util.List;
 import java.util.concurrent.BrokenBarrierException;
@@ -244,12 +243,8 @@ public class StreamProcessorReprocessingTest {
           doAnswer(
                   (invocationOnMock -> {
                     latch.countDown();
-                    return invocationOnMock.callRealMethod();
+                    throw new RuntimeException("expected");
                   }))
-              .when(streamProcessor)
-              .onEvent(any());
-
-          doThrow(new RecoverableException("expected", new RuntimeException("expected")))
               .when(zeebeDb)
               .transaction();
         });
@@ -260,7 +255,8 @@ public class StreamProcessorReprocessingTest {
         .extracting(LoggedEvent::getPosition)
         .containsOnly(eventPosition1);
 
-    verify(streamProcessor, atLeast(2)).onEvent(any());
+    verify(streamProcessor, times(1)).onEvent(any());
+    verify(zeebeDb, atLeast(2)).transaction();
   }
 
   @Test

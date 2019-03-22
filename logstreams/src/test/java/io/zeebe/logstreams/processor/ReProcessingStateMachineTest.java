@@ -58,7 +58,7 @@ public class ReProcessingStateMachineTest {
     final ControllableActor controllableActor = new ControllableActor();
     actor = controllableActor.getActor();
 
-    when(logStreamReader.hasNext()).thenReturn(true, false);
+    when(logStreamReader.hasNext()).thenReturn(true, true, false);
     when(logStreamReader.next()).thenReturn(mock(LoggedEvent.class));
 
     zeebeDbTransaction = mock(ZeebeDbTransaction.class);
@@ -78,6 +78,7 @@ public class ReProcessingStateMachineTest {
             .setStreamProcessor(streamProcessor)
             .setZeebeDb(zeebeDb)
             .setAbortCondition(() -> false)
+            .setLastSourceEventPosition(0)
             .build();
 
     actorSchedulerRule.submitActor(controllableActor);
@@ -91,7 +92,7 @@ public class ReProcessingStateMachineTest {
     // when
     actor.call(
         () -> {
-          final ActorFuture<Void> recoverFuture = reProcessingStateMachine.startRecover(0);
+          final ActorFuture<Void> recoverFuture = reProcessingStateMachine.startRecover();
           actor.runOnCompletion(recoverFuture, (v, t) -> latch.countDown());
         });
     actorSchedulerRule.workUntilDone();
@@ -119,7 +120,7 @@ public class ReProcessingStateMachineTest {
     // when
     actor.call(
         () -> {
-          final ActorFuture<Void> recoverFuture = reProcessingStateMachine.startRecover(0);
+          final ActorFuture<Void> recoverFuture = reProcessingStateMachine.startRecover();
           actor.runOnCompletion(recoverFuture, (v, t) -> latch.countDown());
         });
     actorSchedulerRule.workUntilDone();
@@ -132,10 +133,11 @@ public class ReProcessingStateMachineTest {
     inOrder.verify(zeebeDb, times(1)).transaction();
     inOrder.verify(zeebeDbTransaction, times(1)).run(any());
 
-    // on error
+    // on error - retry
     inOrder.verify(zeebeDbTransaction, times(1)).rollback();
     inOrder.verify(zeebeDb, times(1)).transaction();
     inOrder.verify(zeebeDbTransaction, times(1)).run(any());
+
     // update state
     inOrder.verify(zeebeDbTransaction, times(1)).commit();
     inOrder.verifyNoMoreInteractions();
@@ -150,7 +152,7 @@ public class ReProcessingStateMachineTest {
     // when
     actor.call(
         () -> {
-          final ActorFuture<Void> recoverFuture = reProcessingStateMachine.startRecover(0);
+          final ActorFuture<Void> recoverFuture = reProcessingStateMachine.startRecover();
           actor.runOnCompletion(recoverFuture, (v, t) -> latch.countDown());
         });
     actorSchedulerRule.workUntilDone();
@@ -158,21 +160,15 @@ public class ReProcessingStateMachineTest {
     // then
     latch.await();
     final InOrder inOrder = Mockito.inOrder(streamProcessor, zeebeDb, zeebeDbTransaction);
+    inOrder.verify(streamProcessor, times(1)).getFailedPosition(any());
     inOrder.verify(streamProcessor, times(1)).onEvent(any());
     // process
     inOrder.verify(zeebeDb, times(1)).transaction();
     inOrder.verify(zeebeDbTransaction, times(1)).run(any());
 
-    // update state
-    inOrder.verify(zeebeDbTransaction, times(1)).commit();
+    // update state + retry
+    inOrder.verify(zeebeDbTransaction, times(2)).commit();
 
-    // on error
-    inOrder.verify(zeebeDbTransaction, times(1)).rollback();
-    inOrder.verify(zeebeDb, times(1)).transaction();
-    inOrder.verify(zeebeDbTransaction, times(1)).run(any());
-
-    // update state
-    inOrder.verify(zeebeDbTransaction, times(1)).commit();
     inOrder.verifyNoMoreInteractions();
   }
 
