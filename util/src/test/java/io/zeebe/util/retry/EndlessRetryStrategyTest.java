@@ -1,18 +1,20 @@
 /*
- * Copyright © 2017 camunda services GmbH (info@camunda.com)
+ * Copyright © 2019  camunda services GmbH (info@camunda.com)
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *        http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
  */
+
 package io.zeebe.util.retry;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,33 +23,17 @@ import io.zeebe.util.sched.Actor;
 import io.zeebe.util.sched.ActorControl;
 import io.zeebe.util.sched.future.ActorFuture;
 import io.zeebe.util.sched.testing.ControlledActorSchedulerRule;
-import java.lang.reflect.Constructor;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
 
-@RunWith(Parameterized.class)
-public class RetryStrategyTest {
+public class EndlessRetryStrategyTest {
 
   @Rule public ControlledActorSchedulerRule schedulerRule = new ControlledActorSchedulerRule();
 
-  @Parameters(name = "{index}: {0}")
-  public static Object[][] reprocessingTriggers() {
-    return new Object[][] {
-      new Object[] {RecoverableRetryStrategy.class},
-      new Object[] {AbortableRetryStrategy.class},
-      new Object[] {EndlessRetryStrategy.class}
-    };
-  }
-
-  @Parameter public Class<RetryStrategy> retryStrategyClass;
-
-  private RetryStrategy retryStrategy;
+  private EndlessRetryStrategy retryStrategy;
   private ActorControl actorControl;
   private ActorFuture<Boolean> resultFuture;
 
@@ -55,14 +41,7 @@ public class RetryStrategyTest {
   public void setUp() {
     final ControllableActor actor = new ControllableActor();
     this.actorControl = actor.getActor();
-
-    try {
-      final Constructor<RetryStrategy> constructor =
-          retryStrategyClass.getConstructor(ActorControl.class);
-      retryStrategy = constructor.newInstance(actorControl);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+    retryStrategy = new EndlessRetryStrategy(actorControl);
 
     schedulerRule.submitActor(actor);
   }
@@ -107,26 +86,34 @@ public class RetryStrategyTest {
   }
 
   @Test
-  public void shouldAbortOnOtherException() {
+  public void shouldRetryOnException() throws Exception {
     // given
+    final AtomicInteger count = new AtomicInteger(0);
+    final AtomicBoolean toggle = new AtomicBoolean(false);
+
     // when
     actorControl.run(
-        () ->
-            resultFuture =
-                retryStrategy.runWithRetry(
-                    () -> {
+        () -> {
+          resultFuture =
+              retryStrategy.runWithRetry(
+                  () -> {
+                    toggle.set(!toggle.get());
+                    if (toggle.get()) {
                       throw new RuntimeException("expected");
-                    }));
+                    }
+                    return count.incrementAndGet() == 10;
+                  });
+        });
 
     schedulerRule.workUntilDone();
 
     // then
+    assertThat(count.get()).isEqualTo(10);
     assertThat(resultFuture.isDone()).isTrue();
-    assertThat(resultFuture.isCompletedExceptionally()).isTrue();
-    assertThat(resultFuture.getException()).isExactlyInstanceOf(RuntimeException.class);
+    assertThat(resultFuture.get()).isTrue();
   }
 
-  private static final class ControllableActor extends Actor {
+  private final class ControllableActor extends Actor {
     public ActorControl getActor() {
       return actor;
     }
